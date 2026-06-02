@@ -1,0 +1,866 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>订单详情</title>
+  <style>
+    :root {
+      --blue: #3d7df7;
+      --red: #ef4b59;
+      --red-soft: #fff0f2;
+      --ink: #1f2329;
+      --muted: #777e89;
+      --bg: #f6f7f9;
+      --panel: #fff;
+      --line: #eef0f4;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #eef1f5;
+      color: var(--ink);
+      display: grid;
+      place-items: start center;
+    }
+    button { border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+    .phone {
+      width: min(100vw, 390px);
+      min-height: 100vh;
+      background: var(--bg);
+      overflow: hidden;
+      box-shadow: 0 0 0 1px rgba(0,0,0,.04), 0 18px 48px rgba(30,35,45,.16);
+    }
+    .content {
+      height: calc(100vh - 70px);
+      overflow: auto;
+      padding-bottom: 24px;
+      scrollbar-width: none;
+    }
+    .content::-webkit-scrollbar { display: none; }
+    .hero {
+      background: var(--blue);
+      color: #fff;
+      padding: 14px 16px 0;
+      border-radius: 0 0 14px 14px;
+    }
+    .status {
+      height: 26px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .signal { display: flex; align-items: center; gap: 6px; }
+    .bars { display: inline-flex; align-items: flex-end; gap: 2px; height: 12px; }
+    .bars i { width: 3px; border-radius: 2px; background: #fff; }
+    .bars i:nth-child(1){height:4px}.bars i:nth-child(2){height:6px}.bars i:nth-child(3){height:9px}.bars i:nth-child(4){height:12px}
+    .wifi { width: 15px; height: 11px; position: relative; overflow: hidden; }
+    .wifi::before,.wifi::after { content:""; position:absolute; left:50%; bottom:-7px; border:2px solid #fff; border-color:#fff transparent transparent; border-radius:50%; transform:translateX(-50%); }
+    .wifi::before { width:24px; height:24px; }
+    .wifi::after { width:14px; height:14px; bottom:-4px; }
+    .wifi i { position:absolute; left:50%; bottom:0; width:4px; height:4px; border-radius:50%; background:#fff; transform:translateX(-50%); }
+    .battery { width:22px; height:11px; border:1.5px solid #fff; border-radius:2px; position:relative; padding:1px; }
+    .battery::after { content:""; position:absolute; right:-4px; top:2px; width:2px; height:4px; background:#fff; }
+    .battery i { display:block; width:78%; height:100%; background:#fff; border-radius:1px; }
+    .topbar {
+      height: 46px;
+      display: grid;
+      grid-template-columns: 36px 1fr 36px;
+      align-items: center;
+    }
+    .back { font-size: 28px; line-height: 1; color: #fff; }
+    .more { font-size: 24px; letter-spacing: 2px; color: #fff; }
+    .summary-title {
+      margin: 2px 0 8px;
+      font-size: 20px;
+      font-weight: 800;
+    }
+    .summary-sub {
+      margin: 0 0 12px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .order-card {
+      background: #fff;
+      color: var(--ink);
+      border-radius: 4px;
+      padding: 10px 10px 11px;
+    }
+    .order-head {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: start;
+    }
+    .customer {
+      font-size: 16px;
+      font-weight: 800;
+    }
+    .phone-icon {
+      display: inline-block;
+      margin-left: 8px;
+      color: var(--red);
+      font-size: 20px;
+      vertical-align: middle;
+    }
+    .trace {
+      height: 30px;
+      padding: 0 10px;
+      border: 1px solid var(--red);
+      border-radius: 16px;
+      color: var(--red);
+      font-size: 13px;
+    }
+    .vehicle {
+      margin: 8px 0;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      color: #3d424b;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+    .vehicle span:first-child {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .new-tag {
+      padding: 3px 7px;
+      border-radius: 3px;
+      color: var(--red);
+      background: var(--red-soft);
+      font-size: 12px;
+    }
+    .summary-line {
+      margin-top: 8px;
+      color: #777e89;
+      font-size: 14px;
+    }
+    .summary-line b {
+      color: var(--red);
+      font-size: 18px;
+    }
+    .copy {
+      width: 17px;
+      height: 17px;
+      border: 1.5px solid #111;
+      border-radius: 2px;
+      position: relative;
+      display: inline-block;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+    .copy::after {
+      content: "";
+      position: absolute;
+      right: -5px;
+      top: -5px;
+      width: 13px;
+      height: 13px;
+      border: 1.5px solid var(--red);
+      border-radius: 2px;
+      background: #fff;
+    }
+    .process {
+      margin: 0 -16px;
+      transform: translateY(18px);
+      padding: 13px 16px 11px;
+      background: #fff;
+      border-radius: 0 0 14px 14px;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 2px;
+      box-shadow: 0 8px 16px rgba(31,35,41,.06);
+    }
+    .step {
+      display: grid;
+      justify-items: center;
+      gap: 5px;
+      color: #b6bac2;
+      font-size: 12px;
+      position: relative;
+    }
+    .step:not(:last-child)::after {
+      content: "›";
+      position: absolute;
+      right: -5px;
+      top: 8px;
+      color: #bfc3ca;
+      font-size: 20px;
+    }
+    .step.active { color: var(--red); }
+    .step svg {
+      width: 26px;
+      height: 26px;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .body {
+      padding-top: 28px;
+    }
+    .info-block {
+      margin-bottom: 10px;
+      background: #fff;
+    }
+    .info-row {
+      min-height: 58px;
+      display: grid;
+      grid-template-columns: 136px 1fr 18px;
+      align-items: center;
+      gap: 10px;
+      background: transparent;
+      padding: 0 16px;
+      border-bottom: 1px solid var(--line);
+      font-size: 15px;
+    }
+    .info-row .label {
+      font-weight: 800;
+    }
+    .info-row .value {
+      color: #323741;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .chev {
+      width: 10px;
+      height: 10px;
+      border-right: 1.7px solid #111;
+      border-bottom: 1.7px solid #111;
+      transform: rotate(-45deg);
+    }
+    .warning {
+      padding: 12px 16px;
+      color: var(--red);
+      background: transparent;
+      font-size: 14px;
+    }
+    .warning::before {
+      content: "!";
+      display: inline-grid;
+      place-items: center;
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      color: #fff;
+      background: var(--red);
+      margin-right: 6px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .material-status {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      justify-content: flex-start;
+      justify-self: start;
+      text-align: left;
+    }
+    .material-status span {
+      white-space: nowrap;
+    }
+    .material-status .missing {
+      color: var(--red);
+    }
+    .material-entry {
+      min-height: 58px;
+      width: 100%;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      border-bottom: 0;
+    }
+    .material-entry .label {
+      flex: 0 0 136px;
+      text-align: left;
+    }
+    .material-entry .chev {
+      margin-left: auto;
+      flex: 0 0 auto;
+    }
+    .material-entry #materialDone {
+      flex: 0 0 auto;
+      text-align: left;
+    }
+    .material-entry .material-status {
+      flex: 0 0 auto;
+    }
+    .material-actions {
+      padding: 5px 16px 12px;
+      background: transparent;
+      display: grid;
+      gap: 8px;
+      justify-items: end;
+    }
+    .global-check {
+      width: max-content;
+      height: 30px;
+      padding: 0 12px;
+      border-radius: 16px;
+      color: #fff;
+      background: linear-gradient(135deg, #7c5cff, #35c2ff 58%, #ef4b59);
+      box-shadow: 0 3px 10px rgba(80, 110, 255, .18);
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .global-check.checking {
+      background: linear-gradient(135deg, #5f6bff, #35c2ff);
+      box-shadow: 0 5px 14px rgba(53, 119, 255, .2);
+    }
+    .global-check-tip {
+      display: none;
+      width: 100%;
+      padding: 0 16px 9px 136px;
+      color: #8a919d;
+      background: #fff;
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1.3;
+      white-space: normal;
+    }
+    .global-check-tip.fail {
+      color: #ff8a00;
+    }
+    .global-check-tip.dirty {
+      color: #8a919d;
+    }
+    .global-check-tip.checking {
+      color: var(--blue) !important;
+    }
+    .global-check-tip.pass {
+      color: #19a66a;
+    }
+    .global-check-tip.show {
+      display: block;
+    }
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 112px;
+      z-index: 40;
+      max-width: 330px;
+      padding: 9px 12px;
+      border-radius: 18px;
+      color: #fff;
+      background: rgba(31,35,41,.86);
+      font-size: 13px;
+      line-height: 1.45;
+      transform: translateX(-50%);
+      display: none;
+    }
+    .toast.show { display: block; }
+    .modal-mask {
+      position: fixed;
+      inset: 0;
+      z-index: 35;
+      display: none;
+      place-items: center;
+      background: rgba(31,35,41,.38);
+    }
+    .modal-mask.show { display: grid; }
+    .modal {
+      width: min(320px, calc(100vw - 48px));
+      padding: 18px 16px 14px;
+      border-radius: 10px;
+      background: #fff;
+      box-shadow: 0 10px 32px rgba(31,35,41,.2);
+    }
+    .modal h3 {
+      margin: 0 0 10px;
+      text-align: center;
+      font-size: 16px;
+    }
+    .modal p {
+      margin: 0 0 16px;
+      color: #555d69;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .modal-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .modal-actions button {
+      height: 38px;
+      border-radius: 20px;
+      font-weight: 800;
+    }
+    .modal-cancel { background: #f5f6f8; color: #777e89; }
+    .modal-ok { background: var(--red); color: #fff; }
+    .ai-reset {
+      position: fixed;
+      left: calc(50% - min(50vw, 195px) + 16px);
+      bottom: 82px;
+      z-index: 28;
+      height: 34px;
+      padding: 0 12px;
+      border-radius: 18px;
+      color: #fff;
+      background: linear-gradient(135deg, #242b36, #5e6a7d);
+      box-shadow: 0 8px 18px rgba(32, 36, 43, .22);
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .ai-reset:active {
+      transform: scale(.96);
+    }
+    .section {
+      padding: 18px 16px 0;
+      background: #fff;
+    }
+    .section h2 {
+      margin: 0 0 13px;
+      font-size: 17px;
+    }
+    .material {
+      min-height: 56px;
+      margin-bottom: 10px;
+      padding: 0 12px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 28px 72px 16px;
+      align-items: center;
+      gap: 8px;
+      background: #f7f7f8;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    .material .name {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .material .state {
+      color: var(--red);
+      white-space: nowrap;
+      text-align: right;
+    }
+    .material .state.gray {
+      color: #777e89;
+    }
+    .material .delete {
+      width: 22px;
+      height: 22px;
+      justify-self: center;
+      color: #6f7580;
+    }
+    .small-tag {
+      margin-left: 5px;
+      padding: 2px 4px;
+      color: var(--red);
+      border: 1px solid var(--red);
+      border-radius: 2px;
+      font-size: 12px;
+    }
+    .add-box {
+      height: 46px;
+      width: 100%;
+      margin: 6px 0 22px;
+      display: grid;
+      place-items: center;
+      border: 1px dashed #ff8d96;
+      border-radius: 4px;
+      color: var(--red);
+      background: #fff7f8;
+      font-size: 15px;
+    }
+    .bottom {
+      height: 70px;
+      background: #fff;
+      display: grid;
+      align-items: center;
+      padding: 10px 16px;
+      border-top: 1px solid var(--line);
+    }
+    .submit {
+      height: 42px;
+      border-radius: 24px;
+      background: var(--red);
+      color: #fff;
+      font-weight: 800;
+      font-size: 15px;
+    }
+    @media (min-width: 720px) {
+      body { padding: 20px; }
+      .phone { min-height: 780px; height: calc(100vh - 40px); border-radius: 26px; }
+    }
+  /* codex viewport-fit fix */
+    .phone {
+      display: flex;
+      flex-direction: column;
+    }
+    .content {
+      flex: 1 1 auto;
+      min-height: 0;
+      height: auto;
+    }
+    .bottom {
+      flex: 0 0 auto;
+    }
+  
+/* codex fixed phone viewport height */
+    .phone {
+      height: 100vh;
+      max-height: 100vh;
+    }
+    @media (min-width: 720px) {
+      .phone {
+        height: calc(100vh - 40px);
+        max-height: calc(100vh - 40px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="phone" aria-label="订单详情">
+    <div class="content">
+      <section class="hero">
+        <div class="status">
+          <span>9:41</span>
+          <div class="signal">
+            <span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+            <span class="wifi" aria-hidden="true"><i></i></span>
+            <span class="battery" aria-hidden="true"><i></i></span>
+          </div>
+        </div>
+        <div class="topbar">
+          <button class="back" type="button" aria-label="返回">‹</button>
+          <span></span>
+          <button class="more" type="button" aria-label="更多">···</button>
+        </div>
+        <h1 class="summary-title">请款｜待请款</h1>
+        <p class="summary-sub">合同已签署，请上传所需材料后发起请款申请。</p>
+        <div class="order-card">
+          <div class="order-head">
+            <div class="customer">王建国 <span class="phone-icon">☎</span></div>
+            <button class="trace" type="button">订单足迹</button>
+          </div>
+          <div class="vehicle"><span>小米SU7 PROMAX&nbsp;&nbsp;2024款&nbsp;&nbsp;金色轮毂海湾蓝...</span><span class="new-tag">新车</span></div>
+          <div class="summary-line">融资总额: <b>8,000,000.00 元</b></div>
+          <div class="summary-line">订单号: 20230814090025 <span class="copy"></span></div>
+        </div>
+        <div class="process">
+          <div class="step active"><svg viewBox="0 0 24 24"><path d="M4 4h12v16H4zM8 8h5M8 12h4M17 17l4 4"></path></svg><span>预审</span></div>
+          <div class="step active"><svg viewBox="0 0 24 24"><path d="M5 4h13v16H5zM9 9h5M8 16l8-8"></path></svg><span>提报</span></div>
+          <div class="step active"><svg viewBox="0 0 24 24"><path d="M6 4h12v16H6zM9 8h6M8 18c1-4 7-4 8 0"></path></svg><span>签约</span></div>
+          <div class="step active"><svg viewBox="0 0 24 24"><path d="M6 4h12v16H6zM9 8h6M8 15h8M12 11v8"></path></svg><span>请款</span></div>
+          <div class="step"><svg viewBox="0 0 24 24"><path d="M6 4h12v16H6zM9 8h6M8 15h8M17 17l4 3"></path></svg><span>放款</span></div>
+          <div class="step"><svg viewBox="0 0 24 24"><path d="M6 4h12v16H6zM9 8h6M8 15h8M14 18l2 2 4-5"></path></svg><span>结清</span></div>
+        </div>
+      </section>
+      <section class="body">
+        <div class="info-block">
+          <div class="info-row"><span class="label">开票方</span><span class="value">泉州卡泰驰汽车销售有限公司</span><span class="chev"></span></div>
+        </div>
+        <div class="info-block">
+          <div class="info-row"><span class="label">上牌城市</span><span class="value">南京</span><span></span></div>
+        </div>
+        <div class="info-block">
+          <div class="info-row"><span class="label">请款方式</span><span class="value">审核后放款</span><span class="chev"></span></div>
+        </div>
+        <div class="info-block">
+          <div class="info-row"><span class="label">GPS信息</span><span class="value">已安装</span><span class="chev"></span></div>
+        </div>
+        <div class="info-block">
+          <div class="info-row"><span class="label">汽车融资租赁<br>确认函</span><span class="value">文件待签署</span><span class="chev"></span></div>
+          <div class="warning">客户人脸验证未通过</div>
+        </div>
+        <div class="info-block" id="materialBlock">
+          <button class="info-row material-entry" id="materialEntry" type="button">
+            <span class="label">材料清单</span>
+            <span class="value" id="materialDone"></span>
+            <span class="material-status"><span class="missing" id="materialMissing"></span></span>
+            <span class="chev"></span>
+          </button>
+          <div class="global-check-tip" id="globalCheckTip">AI全局检测中，检测期间无法上传材料。</div>
+        </div>
+        <div class="material-actions">
+          <button class="global-check" id="globalCheck" type="button">AI全局检测</button>
+        </div>
+      </section>
+    </div>
+    <footer class="bottom">
+      <button class="submit" type="button">申请放款</button>
+    </footer>
+  </main>
+  <button class="ai-reset" id="aiReset" type="button">AI全局检测状态重置</button>
+  <div class="toast" id="toast"></div>
+  <div class="modal-mask" id="globalConfirm" aria-hidden="true">
+    <div class="modal">
+      <h3>继续AI全局检测</h3>
+      <p id="globalConfirmText"></p>
+      <div class="modal-actions">
+        <button class="modal-cancel" type="button">取消</button>
+        <button class="modal-ok" type="button">确定</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    const globalCheckTip = document.querySelector("#globalCheckTip");
+    const globalCheck = document.querySelector("#globalCheck");
+    const toast = document.querySelector("#toast");
+    const globalConfirm = document.querySelector("#globalConfirm");
+    const globalConfirmText = document.querySelector("#globalConfirmText");
+    const materialDone = document.querySelector("#materialDone");
+    const materialMissing = document.querySelector("#materialMissing");
+    const aiReset = document.querySelector("#aiReset");
+    let globalChecking = false;
+    function storageGet(key) {
+      try {
+        const state = JSON.parse(window.name || "{}");
+        if (state && state[key] !== undefined) return state[key];
+      } catch (error) {
+      }
+      try {
+        return localStorage.getItem(key);
+      } catch (error) {
+        return null;
+      }
+    }
+    function storageSet(key, value) {
+      try {
+        const state = JSON.parse(window.name || "{}");
+        state[key] = value;
+        window.name = JSON.stringify(state);
+      } catch (error) {
+      }
+      try {
+        localStorage.setItem(key, value);
+      } catch (error) {
+      }
+    }
+    if (storageGet("materialGlobalStatus") === "checking" && !Number(storageGet("materialGlobalStartedAt") || 0)) {
+      storageSet("materialGlobalStatus", "");
+      storageSet("materialGlobalResult", "");
+      storageSet("materialGlobalStartedAt", "");
+    }
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      window.setTimeout(() => toast.classList.remove("show"), 2200);
+    }
+    function parseMaterialState() {
+      const saved = storageGet("materialChecklistState");
+      if (!saved) return [];
+      try {
+        return JSON.parse(saved);
+      } catch (error) {
+        return [];
+      }
+    }
+    function resetAttachmentDetections(groups) {
+      groups.forEach((group) => {
+        (group.materials || []).forEach((material) => {
+          const stores = material.vehicle
+            ? (material.vehicles || []).map((vehicle) => vehicle.attachments || [])
+            : [material.attachments || []];
+          stores.forEach((attachments) => {
+            attachments.forEach((attachment) => {
+              attachment.status = "idle";
+              attachment.reasons = [];
+            });
+          });
+        });
+      });
+      return groups;
+    }
+    function resetAiDetectionState() {
+      storageSet("materialGlobalStatus", "");
+      storageSet("materialGlobalResult", "");
+      storageSet("materialGlobalStartedAt", "");
+      storageSet("materialGlobalRunId", "");
+      storageSet("materialGlobalDirty", "");
+      storageSet("materialDetectionReset", "1");
+      const groups = parseMaterialState();
+      if (groups.length) {
+        storageSet("materialChecklistState", JSON.stringify(resetAttachmentDetections(groups)));
+      }
+      syncPageState();
+      showToast("AI检测状态已重置为未检测");
+    }
+    function collectMaterialIssues() {
+      const checking = new Set();
+      const failed = new Set();
+      parseMaterialState().forEach((group) => {
+        (group.materials || []).forEach((material) => {
+          const attachments = material.vehicle
+            ? (material.vehicles || []).flatMap((vehicle) => vehicle.attachments || [])
+            : (material.attachments || []);
+          if (attachments.some((att) => att.status === "checking")) checking.add(material.title);
+          if (attachments.some((att) => att.status === "fail")) failed.add(material.title);
+        });
+      });
+      return { checking: Array.from(checking), failed: Array.from(failed) };
+    }
+    function materialComplete() {
+      const groups = parseMaterialState();
+      if (!groups.length) return false;
+      return groups.every((group) => (group.materials || []).every((material) => {
+        if (material.optional) return true;
+        if (material.vehicle) {
+          return (material.vehicles || []).every((vehicle) => {
+            if (material.fixedPages) {
+              return (material.fixedPages || []).every((page) => (vehicle.attachments || []).some((att) => att.name === page));
+            }
+            return (vehicle.attachments || []).length > 0;
+          });
+        }
+        return (material.attachments || []).length > 0;
+      }));
+    }
+    function syncMaterialEntryStatus() {
+      if (materialComplete()) {
+        materialDone.textContent = "已录入";
+        materialMissing.textContent = "";
+        return;
+      }
+      materialDone.textContent = "";
+      materialMissing.textContent = "未录入";
+    }
+    function setGlobalStatus(status) {
+      storageSet("materialGlobalStatus", status);
+    }
+    function setGlobalResult(status) {
+      const result = status === "fail"
+        ? {
+            status,
+            opinions: [
+              { material: "登记证", reasons: ["登记证车架号与订单车辆车架号不一致。"] },
+              { material: "发票", reasons: ["发票客户姓名与订单客户姓名不一致。"] }
+            ]
+          }
+        : { status, opinions: [] };
+      storageSet("materialGlobalResult", JSON.stringify(result));
+    }
+    function showResult(status) {
+      globalChecking = false;
+      globalCheck.classList.remove("checking");
+      globalCheck.textContent = "AI全局检测";
+      globalCheckTip.style.color = "";
+      globalCheckTip.classList.add("show");
+      globalCheckTip.classList.remove("pass", "fail", "dirty", "checking");
+      if (status === "fail") {
+        globalCheckTip.classList.add("fail");
+        globalCheckTip.textContent = "AI全局检测完成，存在待关注项";
+        return;
+      }
+      globalCheckTip.classList.add("pass");
+      globalCheckTip.textContent = "AI全局检测完成，未发现问题";
+    }
+    function syncGlobalStatus() {
+      completeGlobalCheckIfDue();
+      const savedStatus = storageGet("materialGlobalStatus");
+      const hasNewUpload = storageGet("materialGlobalDirty") === "1";
+      globalChecking = false;
+      globalCheck.classList.remove("checking");
+      globalCheck.textContent = "AI全局检测";
+      globalCheckTip.style.color = "";
+      globalCheckTip.classList.remove("show");
+      globalCheckTip.classList.remove("pass", "fail", "dirty", "checking");
+      globalCheckTip.textContent = "点击AI全局检测，提前发现错误，预计30s出结果";
+      if (savedStatus === "checking") {
+        globalChecking = true;
+        globalCheck.textContent = "AI全局检测中（预计30s）";
+        globalCheck.classList.add("checking");
+        globalCheckTip.classList.add("show", "checking");
+        globalCheckTip.style.color = "var(--blue)";
+        globalCheckTip.textContent = "AI全局检测中，检测期间无法上传材料。";
+      } else if (hasNewUpload && (savedStatus === "pass" || savedStatus === "fail")) {
+        globalCheckTip.classList.add("show", "dirty");
+        globalCheckTip.textContent = "你有新上传的附件，建议你重新AI全局检测";
+      } else if (savedStatus === "pass" || savedStatus === "fail") {
+        showResult(savedStatus);
+      } else {
+        globalCheckTip.classList.add("show");
+      }
+    }
+    function setGlobalChecking() {
+      globalChecking = true;
+      const runId = String(Date.now());
+      setGlobalStatus("checking");
+      storageSet("materialGlobalResult", "");
+      storageSet("materialGlobalDirty", "");
+      storageSet("materialGlobalStartedAt", runId);
+      storageSet("materialGlobalRunId", runId);
+      globalCheck.textContent = "AI全局检测中（预计30s）";
+      globalCheck.classList.add("checking");
+      globalCheckTip.classList.add("show", "checking");
+      globalCheckTip.style.color = "var(--blue)";
+      globalCheckTip.textContent = "AI全局检测中，检测期间无法上传材料。";
+      window.setTimeout(() => {
+        if (storageGet("materialGlobalRunId") !== runId || storageGet("materialGlobalStatus") !== "checking") return;
+        const result = "fail";
+        setGlobalStatus(result);
+        setGlobalResult(result);
+        showResult(result);
+      }, 20000);
+    }
+    function completeGlobalCheckIfDue() {
+      if (storageGet("materialGlobalStatus") !== "checking") return;
+      const startedAt = Number(storageGet("materialGlobalStartedAt") || 0);
+      if (!startedAt) {
+        setGlobalStatus("");
+        storageSet("materialGlobalStartedAt", "");
+        storageSet("materialGlobalRunId", "");
+        return;
+      }
+      if (Date.now() - startedAt < 20000) return;
+      const result = "fail";
+      setGlobalStatus(result);
+      setGlobalResult(result);
+    }
+    function syncPageState() {
+      syncMaterialEntryStatus();
+      syncGlobalStatus();
+    }
+    syncPageState();
+    window.addEventListener("pageshow", syncPageState);
+    aiReset.addEventListener("click", resetAiDetectionState);
+    globalCheck.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const { checking: checkingMaterials, failed: failedMaterials } = collectMaterialIssues();
+      if (checkingMaterials.length) {
+        showToast(`${checkingMaterials.join("，")}AI附件检测中，请检测完成后重新操作`);
+        return;
+      }
+      if (failedMaterials.length) {
+        globalConfirmText.textContent = `${failedMaterials.join("，")}AI附件检测不通过，可能导致AI全局检测不准确，是否继续`;
+        globalConfirm.classList.add("show");
+        globalConfirm.setAttribute("aria-hidden", "false");
+        return;
+      }
+      setGlobalChecking();
+    });
+    globalConfirm.addEventListener("click", (event) => {
+      if (event.target === globalConfirm || event.target.closest(".modal-cancel")) {
+        globalConfirm.classList.remove("show");
+        globalConfirm.setAttribute("aria-hidden", "true");
+        return;
+      }
+      if (!event.target.closest(".modal-ok")) return;
+      globalConfirm.classList.remove("show");
+      globalConfirm.setAttribute("aria-hidden", "true");
+      setGlobalChecking();
+    });
+    document.querySelector("#materialBlock").addEventListener("click", () => {
+      const status = storageGet("materialGlobalStatus") || "";
+      const suffix = status ? `?globalStatus=${status}` : "";
+      window.location.href = "material-detail.html" + suffix;
+    });
+    document.querySelector(".back").addEventListener("click", () => {
+      window.location.href = "order.html";
+    });
+  </script>
+</body>
+</html>

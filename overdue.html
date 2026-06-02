@@ -1,0 +1,758 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>逾期管理</title>
+  <style>
+    :root {
+      --red: #ef4b59;
+      --red-soft: #fff0f2;
+      --orange: #ff8a00;
+      --orange-soft: #fff6e8;
+      --blue: #2878ff;
+      --blue-soft: #eef5ff;
+      --ink: #20242b;
+      --muted: #7d8490;
+      --line: #edf0f4;
+      --bg: #f5f6f8;
+      --panel: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #eef1f5;
+      color: var(--ink);
+      display: grid;
+      place-items: start center;
+    }
+    button, input { font: inherit; }
+    button { border: 0; background: transparent; color: inherit; cursor: pointer; }
+    .phone {
+      width: min(100vw, 390px);
+      min-height: 100vh;
+      background: var(--bg);
+      overflow: hidden;
+      box-shadow: 0 0 0 1px rgba(0,0,0,.04), 0 18px 48px rgba(30,35,45,.16);
+    }
+    .status {
+      height: 36px;
+      padding: 10px 18px 0;
+      background: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .signal { display: flex; align-items: center; gap: 6px; }
+    .bars { display: inline-flex; align-items: flex-end; gap: 2px; height: 12px; }
+    .bars i { width: 3px; border-radius: 2px; background: #111; }
+    .bars i:nth-child(1){height:4px}.bars i:nth-child(2){height:6px}.bars i:nth-child(3){height:9px}.bars i:nth-child(4){height:12px}
+    .battery { width:22px; height:11px; border:1.5px solid #111; border-radius:2px; position:relative; padding:1px; }
+    .battery::after { content:""; position:absolute; right:-4px; top:2px; width:2px; height:4px; background:#111; }
+    .battery i { display:block; width:78%; height:100%; background:#111; border-radius:1px; }
+    .titlebar {
+      height: 48px;
+      background: #fff;
+      display: grid;
+      grid-template-columns: 42px 1fr 42px;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+    }
+    .back {
+      font-size: 25px;
+      line-height: 1;
+      color: #252932;
+    }
+    .titlebar h1 {
+      margin: 0;
+      text-align: center;
+      font-size: 17px;
+      font-weight: 900;
+    }
+    .content {
+      height: calc(100vh - 84px);
+      overflow: auto;
+      padding-bottom: 18px;
+      scrollbar-width: none;
+    }
+    .content::-webkit-scrollbar { display: none; }
+    .summary {
+      padding: 5px 14px;
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+    }
+    .summary-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .summary-head h2 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 900;
+    }
+    .summary-head span {
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.2;
+      text-align: right;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+      border: 1px solid #edf0f4;
+      border-radius: 8px;
+      overflow: hidden;
+      background: linear-gradient(180deg, #fff, #fafbfc);
+    }
+    .stat {
+      min-height: 31px;
+      padding: 4px 7px 3px;
+      background: transparent;
+      box-shadow: none;
+      border-right: 1px solid #edf0f4;
+    }
+    .stat:last-child {
+      border-right: 0;
+    }
+    .stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.05;
+      white-space: nowrap;
+    }
+    .stat b {
+      display: inline-block;
+      margin-top: 2px;
+      font-size: 15px;
+      line-height: 1;
+    }
+    .stat em {
+      display: inline-block;
+      margin-top: 0;
+      margin-left: 3px;
+      color: var(--orange);
+      font-style: normal;
+      font-size: 10px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .search-wrap {
+      position: sticky;
+      top: 0;
+      z-index: 4;
+      padding: 8px 14px 7px;
+      background: var(--bg);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 76px;
+      gap: 8px;
+      align-items: center;
+    }
+    .search {
+      height: 38px;
+      display: grid;
+      grid-template-columns: 28px 1fr 54px;
+      align-items: center;
+      border: 1px solid #e1e5ec;
+      border-radius: 20px;
+      background: #fff;
+      position: relative;
+    }
+    .search svg {
+      width: 18px;
+      height: 18px;
+      margin-left: 12px;
+      stroke: #252932;
+      stroke-width: 2.2;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .search input {
+      min-width: 0;
+      border: 0;
+      outline: 0;
+      color: var(--ink);
+      background: transparent;
+      font-size: 14px;
+    }
+    .search input::placeholder { color: #bdc3ce; }
+    .search button {
+      height: 28px;
+      margin-right: 5px;
+      border-radius: 15px;
+      color: #fff;
+      background: var(--red);
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .org-trigger {
+      height: 28px;
+      padding: 0 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      border-radius: 15px;
+      background: #252932;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+    .org-trigger::after {
+      content: "";
+      width: 0;
+      height: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-top: 5px solid currentColor;
+      opacity: .9;
+    }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 0 14px 10px;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-x;
+      scroll-snap-type: x proximity;
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab {
+      flex: 0 0 auto;
+      height: 30px;
+      padding: 0 12px;
+      border-radius: 16px;
+      background: #fff;
+      color: #5d6470;
+      font-size: 13px;
+      font-weight: 800;
+      scroll-snap-align: start;
+    }
+    .tab.active {
+      background: var(--red);
+      color: #fff;
+    }
+    .tab-count,
+    .org-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 18px;
+      height: 18px;
+      margin-left: 4px;
+      padding: 0 5px;
+      border-radius: 9px;
+      background: #f2f4f7;
+      color: #6d7480;
+      font-size: 11px;
+      font-weight: 900;
+    }
+    .tab.active .tab-count {
+      background: rgba(255,255,255,.2);
+      color: #fff;
+    }
+    .org-filter {
+      position: relative;
+      display: flex;
+      justify-content: flex-end;
+    }
+    .org-popover {
+      display: none;
+      position: absolute;
+      top: 34px;
+      right: 0;
+      z-index: 6;
+      width: 184px;
+      padding: 7px;
+      border: 1px solid #e7ebf1;
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 12px 28px rgba(28, 34, 45, .16);
+    }
+    .org-popover.show { display: grid; gap: 4px; }
+    .org-option {
+      height: 31px;
+      padding: 0 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-radius: 6px;
+      color: #303640;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .org-option.active {
+      color: #fff;
+      background: #252932;
+    }
+    .org-option.active .org-count {
+      background: rgba(255,255,255,.18);
+      color: #fff;
+    }
+    .list {
+      padding: 0 14px 18px;
+      display: grid;
+      gap: 8px;
+    }
+    .card {
+      padding: 10px 10px 9px;
+      background: #fff;
+      border-radius: 6px;
+      border-left: 3px solid #ffccd2;
+      box-shadow: 0 1px 0 rgba(31,35,41,.03);
+      cursor: pointer;
+    }
+    .card:active {
+      transform: scale(.995);
+    }
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 7px;
+    }
+    .name {
+      margin: 0;
+      min-width: 0;
+      font-size: 16px;
+      font-weight: 900;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .head-left {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .follow-mark {
+      flex: 0 0 auto;
+      height: 20px;
+      padding: 0 7px;
+      display: inline-flex;
+      align-items: center;
+      border-radius: 10px;
+      color: #168044;
+      background: #eaf8ef;
+      font-size: 11px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+    .status-tag {
+      flex: 0 0 auto;
+      min-width: 58px;
+      height: 23px;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 12px;
+      color: var(--red);
+      background: var(--red-soft);
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .status-tag.visit { color: #2878ff; background: var(--blue-soft); }
+    .status-tag.car { color: #8a4d00; background: var(--orange-soft); }
+    .status-tag.law { color: #7b3cff; background: #f3efff; }
+    .meta-line {
+      display: grid;
+      grid-template-columns: 1fr 1.35fr 1fr;
+      gap: 5px;
+      margin: 0 0 7px;
+    }
+    .metric {
+      min-height: 44px;
+      padding: 6px 5px;
+      border-radius: 5px;
+      background: #f8f9fb;
+    }
+    .metric span {
+      display: block;
+      color: #7d8490;
+      font-size: 11px;
+    }
+    .metric b {
+      display: block;
+      margin-top: 3px;
+      font-size: 14px;
+      line-height: 1.1;
+      white-space: nowrap;
+    }
+    .metric.danger b { color: var(--red); }
+    .info {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px 8px;
+      padding-top: 7px;
+      border-top: 1px solid var(--line);
+      font-size: 12px;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 54px 1fr;
+      gap: 4px;
+      line-height: 1.35;
+      min-width: 0;
+    }
+    .row.wide {
+      grid-column: 1 / -1;
+      margin-top: 2px;
+      padding: 7px 8px;
+      border-radius: 6px;
+      background: #f8f9fb;
+      border: 1px solid #eef1f5;
+    }
+    .row.wide.recent {
+      background: #fff6e8;
+      border-color: #ffe1b8;
+    }
+    .row span:first-child { color: #7d8490; }
+    .row.wide span:first-child {
+      color: #7d8490;
+      font-weight: 900;
+    }
+    .row.wide.recent span:first-child { color: #b56600; }
+    .row span:last-child {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #20242b;
+      font-weight: 700;
+    }
+    .row.wide span:last-child {
+      color: #4d5662;
+      font-weight: 800;
+    }
+    .row.wide.recent span:last-child { color: #553600; font-weight: 900; }
+    .empty {
+      display: none;
+      margin: 24px 14px;
+      padding: 24px 12px;
+      border-radius: 8px;
+      background: #fff;
+      color: #8a919d;
+      text-align: center;
+      font-size: 14px;
+    }
+    .empty.show { display: block; }
+    @media (min-width: 720px) {
+      body { padding: 20px; }
+      .phone { min-height: 780px; height: calc(100vh - 40px); border-radius: 26px; }
+    }
+  /* codex viewport-fit fix */
+    .phone {
+      display: flex;
+      flex-direction: column;
+    }
+    .status,
+    .titlebar {
+      flex: 0 0 auto;
+    }
+    .content {
+      flex: 1 1 auto;
+      min-height: 0;
+      height: auto;
+    }
+  
+/* codex fixed phone viewport height */
+    .phone {
+      height: 100vh;
+      max-height: 100vh;
+    }
+    @media (min-width: 720px) {
+      .phone {
+        height: calc(100vh - 40px);
+        max-height: calc(100vh - 40px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="phone" aria-label="逾期管理">
+    <div class="status">
+      <span>9:41</span>
+      <div class="signal">
+        <span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <span>5G</span>
+        <span class="battery" aria-hidden="true"><i></i></span>
+      </div>
+    </div>
+    <header class="titlebar">
+      <button class="back" id="backHome" type="button" aria-label="返回">‹</button>
+      <h1>逾期管理</h1>
+      <span></span>
+    </header>
+    <div class="content">
+      <section class="summary">
+        <div class="stats">
+          <div class="stat"><span>名下逾期客户</span><b id="totalCount">0</b><em>含处理中客户</em></div>
+          <div class="stat"><span>30+逾期数</span><b id="over30Count">0</b><em id="over30Rate">占比 0%</em></div>
+          <div class="stat"><span>逾期总金额</span><b id="totalAmount">0</b><em>元</em></div>
+        </div>
+      </section>
+      <div class="search-wrap">
+        <div class="search">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4.2-4.2"></path></svg>
+          <input id="keyword" placeholder="客户姓名/维护人/状态/跟进人" />
+          <button id="searchBtn" type="button">搜索</button>
+        </div>
+        <div class="org-filter">
+          <button class="org-trigger" id="orgTrigger" type="button">团队 0</button>
+          <div class="org-popover" id="orgPopover">
+            <button class="org-option" data-owner="唐慧峰" data-label="我的" type="button">我的<span class="org-count">0</span></button>
+            <button class="org-option active" data-owner="全部" data-label="队伍" type="button">队伍逾期客户<span class="org-count">0</span></button>
+            <button class="org-option" data-owner="唐慧峰" data-label="唐慧峰" type="button">唐慧峰<span class="org-count">0</span></button>
+            <button class="org-option" data-owner="董慧颖" data-label="董慧颖" type="button">董慧颖<span class="org-count">0</span></button>
+            <button class="org-option" data-owner="刘敏" data-label="刘敏" type="button">刘敏<span class="org-count">0</span></button>
+          </div>
+        </div>
+      </div>
+      <nav class="tabs" aria-label="逾期状态">
+        <button class="tab active" data-status="全部" type="button">全部<span class="tab-count">0</span></button>
+        <button class="tab" data-status="电催" type="button">电催<span class="tab-count">0</span></button>
+        <button class="tab" data-status="实地催收" type="button">实地催收<span class="tab-count">0</span></button>
+        <button class="tab" data-status="收车" type="button">收车<span class="tab-count">0</span></button>
+        <button class="tab" data-status="诉讼" type="button">诉讼<span class="tab-count">0</span></button>
+      </nav>
+      <section class="list" id="list"></section>
+      <div class="empty" id="empty">暂无匹配的逾期客户</div>
+    </div>
+  </main>
+  <script>
+    const customers = [
+      {
+        id: "lixiaoli",
+        name: "李晓丽",
+        status: "电催",
+        days: 12,
+        amount: 18600,
+        paid: 8,
+        total: 36,
+        follower: "王玉清",
+        followTime: "2026-05-28 18:20",
+        owner: "唐慧峰",
+        ownerTeam: "我的客户",
+        note: "电话已接通，客户承诺本周五前补缴。"
+      },
+      {
+        id: "wangjianguo",
+        name: "王建国",
+        status: "实地催收",
+        days: 38,
+        amount: 56200,
+        paid: 11,
+        total: 48,
+        follower: "刘敏",
+        followTime: "2026-05-29 09:10",
+        owner: "唐慧峰",
+        ownerTeam: "我的客户",
+        note: "现场催收中，车辆仍在客户处正常经营。"
+      },
+      {
+        id: "zhaoliu",
+        name: "赵六",
+        status: "收车",
+        days: 64,
+        amount: 94800,
+        paid: 6,
+        total: 36,
+        follower: "陈立",
+        followTime: "2026-05-27 16:42",
+        owner: "董慧颖",
+        ownerTeam: "团队客户",
+        note: "已定位车辆位置，等待收车小组现场处理。"
+      },
+      {
+        id: "zhouna",
+        name: "周娜",
+        status: "诉讼",
+        days: 96,
+        amount: 138500,
+        paid: 4,
+        total: 36,
+        follower: "宋佳",
+        followTime: "2026-05-26 11:05",
+        owner: "董慧颖",
+        ownerTeam: "团队客户",
+        note: "诉讼资料已提交法务，等待立案反馈。"
+      },
+      {
+        id: "shenqiang",
+        name: "沈强",
+        status: "电催",
+        days: 27,
+        amount: 32100,
+        paid: 15,
+        total: 48,
+        follower: "王玉清",
+        followTime: "2026-05-28 14:35",
+        owner: "唐慧峰",
+        ownerTeam: "我的客户",
+        note: "客户资金周转紧张，建议持续跟进。"
+      },
+      {
+        id: "chensiyuan",
+        name: "陈思远",
+        status: "实地催收",
+        days: 45,
+        amount: 71600,
+        paid: 9,
+        total: 36,
+        follower: "刘敏",
+        followTime: "2026-05-29 10:25",
+        owner: "刘敏",
+        ownerTeam: "团队客户",
+        note: "团队成员已预约下午上门，核实车辆停放位置。"
+      }
+    ];
+
+    const statusClass = {
+      电催: "",
+      实地催收: "visit",
+      收车: "car",
+      诉讼: "law"
+    };
+    const list = document.querySelector("#list");
+    const empty = document.querySelector("#empty");
+    const keyword = document.querySelector("#keyword");
+    const orgTrigger = document.querySelector("#orgTrigger");
+    const orgPopover = document.querySelector("#orgPopover");
+    let currentStatus = "全部";
+    let currentOwner = "全部";
+
+    function money(value) {
+      return value.toLocaleString("zh-CN", { maximumFractionDigits: 0 });
+    }
+
+    function updateStats() {
+      const scoped = customers.filter((item) => currentOwner === "全部" || item.owner === currentOwner);
+      const over30 = scoped.filter((item) => item.days >= 30).length;
+      const total = scoped.length || 1;
+      const amount = scoped.reduce((sum, item) => sum + item.amount, 0);
+      document.querySelector("#totalCount").textContent = scoped.length;
+      document.querySelector("#over30Count").textContent = over30;
+      document.querySelector("#over30Rate").textContent = `占比 ${Math.round(over30 / total * 100)}%`;
+      document.querySelector("#totalAmount").textContent = money(amount);
+    }
+
+    function updateFilterCounts() {
+      document.querySelectorAll(".org-option").forEach((tab) => {
+        const owner = tab.dataset.owner;
+        const count = customers.filter((item) => owner === "全部" || item.owner === owner).length;
+        tab.querySelector(".org-count").textContent = count;
+      });
+      const activeOrg = document.querySelector(".org-option.active");
+      if (activeOrg) {
+        const count = activeOrg.querySelector(".org-count").textContent;
+        orgTrigger.textContent = `${activeOrg.dataset.label} ${count}`;
+      }
+      const scoped = customers.filter((item) => currentOwner === "全部" || item.owner === currentOwner);
+      document.querySelectorAll(".tab").forEach((tab) => {
+        const status = tab.dataset.status;
+        const count = scoped.filter((item) => status === "全部" || item.status === status).length;
+        tab.querySelector(".tab-count").textContent = count;
+      });
+    }
+
+    function isRecentlyFollowed(followTime) {
+      const base = new Date("2026-05-29T09:41:00");
+      const time = new Date(followTime.replace(" ", "T"));
+      return base - time <= 24 * 60 * 60 * 1000;
+    }
+
+    function card(customer) {
+      const isRecent = isRecentlyFollowed(customer.followTime);
+      const recentMark = isRecent ? '<span class="follow-mark">近2天已跟进</span>' : "";
+      return `
+        <article class="card" data-id="${customer.id}">
+          <div class="card-head">
+            <div class="head-left">
+              <h2 class="name">${customer.name}</h2>
+              ${recentMark}
+            </div>
+            <span class="status-tag ${statusClass[customer.status]}">${customer.status}</span>
+          </div>
+          <div class="meta-line">
+            <div class="metric danger"><span>逾期天数</span><b>${customer.days} 天</b></div>
+            <div class="metric danger"><span>逾期金额</span><b>${money(customer.amount)} 元</b></div>
+            <div class="metric"><span>还款期数</span><b>${customer.paid}/${customer.total}</b></div>
+          </div>
+          <div class="info">
+            <div class="row"><span>跟进人</span><span>${customer.follower}</span></div>
+            <div class="row"><span>最近跟进</span><span>${customer.followTime}</span></div>
+            <div class="row"><span>维护人</span><span>${customer.owner}</span></div>
+            <div class="row wide ${isRecent ? "recent" : ""}"><span>跟进记录</span><span>${customer.note}</span></div>
+          </div>
+        </article>
+      `;
+    }
+
+    function render() {
+      const value = keyword.value.trim();
+      const data = customers.filter((item) => {
+        const byStatus = currentStatus === "全部" || item.status === currentStatus;
+        const byOwner = currentOwner === "全部" || item.owner === currentOwner;
+        const byKeyword = !value || [item.name, item.status, item.follower, item.owner, item.note].some((field) => field.includes(value));
+        return byStatus && byOwner && byKeyword;
+      });
+      list.innerHTML = data.map(card).join("");
+      empty.classList.toggle("show", !data.length);
+    }
+
+    document.querySelector("#backHome").addEventListener("click", () => {
+      window.location.href = "home.html";
+    });
+    document.querySelector("#searchBtn").addEventListener("click", render);
+    keyword.addEventListener("input", render);
+    list.addEventListener("click", (event) => {
+      const card = event.target.closest(".card");
+      if (!card) return;
+      window.location.href = `overdue-detail.html?id=${card.dataset.id}`;
+    });
+    orgTrigger.addEventListener("click", (event) => {
+      event.stopPropagation();
+      orgPopover.classList.toggle("show");
+    });
+    document.querySelector(".tabs").addEventListener("click", (event) => {
+      const tab = event.target.closest(".tab");
+      if (!tab) return;
+      document.querySelectorAll(".tab").forEach((item) => item.classList.remove("active"));
+      tab.classList.add("active");
+      currentStatus = tab.dataset.status;
+      render();
+    });
+    orgPopover.addEventListener("click", (event) => {
+      const tab = event.target.closest(".org-option");
+      if (!tab) return;
+      document.querySelectorAll(".org-option").forEach((item) => item.classList.remove("active"));
+      tab.classList.add("active");
+      currentOwner = tab.dataset.owner;
+      orgPopover.classList.remove("show");
+      updateStats();
+      updateFilterCounts();
+      render();
+    });
+    document.addEventListener("click", () => {
+      orgPopover.classList.remove("show");
+    });
+
+    updateFilterCounts();
+    updateStats();
+    render();
+  </script>
+</body>
+</html>

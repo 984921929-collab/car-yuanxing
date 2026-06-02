@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>订单列表</title>
+  <style>
+    :root {
+      --red: #ef4b59;
+      --red-soft: #ffecef;
+      --ink: #20242b;
+      --muted: #858b95;
+      --bg: #f6f7f9;
+      --panel: #fff;
+      --line: #eef0f4;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #eef1f5;
+      color: var(--ink);
+      display: grid;
+      place-items: start center;
+    }
+    button, input { font: inherit; }
+    button { border: 0; background: transparent; color: inherit; cursor: pointer; }
+    .phone {
+      width: min(100vw, 390px);
+      min-height: 100vh;
+      background: var(--bg);
+      overflow: hidden;
+      box-shadow: 0 0 0 1px rgba(0,0,0,.04), 0 18px 48px rgba(30,35,45,.16);
+    }
+    .status {
+      height: 40px;
+      padding: 12px 18px 0;
+      background: linear-gradient(180deg, #fff3eb, #fff);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .signal { display: flex; align-items: center; gap: 6px; }
+    .bars { display: inline-flex; align-items: flex-end; gap: 2px; height: 12px; }
+    .bars i { width: 3px; border-radius: 2px; background: #111; }
+    .bars i:nth-child(1){height:4px}.bars i:nth-child(2){height:6px}.bars i:nth-child(3){height:9px}.bars i:nth-child(4){height:12px}
+    .wifi { width: 15px; height: 11px; position: relative; overflow: hidden; }
+    .wifi::before,.wifi::after { content:""; position:absolute; left:50%; bottom:-7px; border:2px solid #111; border-color:#111 transparent transparent; border-radius:50%; transform:translateX(-50%); }
+    .wifi::before { width:24px; height:24px; }
+    .wifi::after { width:14px; height:14px; bottom:-4px; }
+    .wifi i { position:absolute; left:50%; bottom:0; width:4px; height:4px; border-radius:50%; background:#111; transform:translateX(-50%); }
+    .battery { width:22px; height:11px; border:1.5px solid #111; border-radius:2px; position:relative; padding:1px; }
+    .battery::after { content:""; position:absolute; right:-4px; top:2px; width:2px; height:4px; background:#111; }
+    .battery i { display:block; width:78%; height:100%; background:#111; border-radius:1px; }
+    .top {
+      background: linear-gradient(180deg, #fff7f2, #fff);
+      height: 58px;
+      padding: 8px 16px 10px;
+      display: grid;
+      grid-template-columns: 196px 92px 1px 28px 28px;
+      gap: 8px;
+      align-items: center;
+    }
+    .search-combo {
+      height: 38px;
+      min-width: 0;
+      display: grid;
+      grid-template-columns: 1fr 54px;
+      align-items: center;
+      border: 1px solid var(--red);
+      border-radius: 22px;
+      background: #fff;
+      overflow: hidden;
+    }
+    .search {
+      height: 100%;
+      border: 0;
+      border-radius: 0;
+      background: #fff;
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      align-items: center;
+      padding: 0 0 0 10px;
+      min-width: 0;
+    }
+    .search::before {
+      content: "";
+      width: 18px;
+      height: 18px;
+      background-color: #222832;
+      -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-4.2-4.2'/%3E%3C/svg%3E") center / contain no-repeat;
+      mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-4.2-4.2'/%3E%3C/svg%3E") center / contain no-repeat;
+    }
+    .search input { min-width: 0; border: 0; outline: 0; color: var(--ink); background: transparent; }
+    .search input::placeholder { color: #c5c8cf; }
+    .search-btn {
+      height: 28px;
+      margin-right: 5px;
+      border-radius: 15px;
+      color: #fff;
+      background: var(--red);
+      font-weight: 700;
+      font-size: 13px;
+    }
+    .owner {
+      height: 36px;
+      border-radius: 20px;
+      color: var(--red);
+      background: var(--red-soft);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      padding: 0 10px;
+      font-size: 15px;
+    }
+    .divider {
+      height: 30px;
+      background: #f0d9d9;
+    }
+    .icon-btn svg { width: 24px; height: 24px; stroke: #1f2329; stroke-width: 2.2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .flow-tabs {
+      height: 58px;
+      background: #fff;
+      display: flex;
+      gap: 32px;
+      align-items: center;
+      overflow-x: auto;
+      padding: 0 16px;
+      border-bottom: 1px solid var(--line);
+      font-size: 17px;
+      color: #6f7580;
+      scrollbar-width: none;
+    }
+    .flow-tabs::-webkit-scrollbar { display: none; }
+    .flow-tabs span { flex: 0 0 auto; position: relative; white-space: nowrap; }
+    .flow-tabs .active { color: #111; font-weight: 800; }
+    .flow-tabs .active::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -14px;
+      width: 32px;
+      height: 4px;
+      border-radius: 4px;
+      background: var(--red);
+      transform: translateX(-50%);
+    }
+    .status-tabs {
+      display: flex;
+      gap: 9px;
+      overflow-x: auto;
+      padding: 13px 16px 14px;
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+      scrollbar-width: none;
+    }
+    .status-tabs::-webkit-scrollbar { display: none; }
+    .pill {
+      flex: 0 0 auto;
+      padding: 8px 13px;
+      border-radius: 5px;
+      background: #f3f4f6;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .pill.active { color: var(--red); background: var(--red-soft); }
+    .list {
+      height: calc(100vh - 40px - 58px - 58px - 59px - 64px);
+      overflow: auto;
+      padding: 13px 16px 18px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 5px;
+      padding: 17px 13px 14px;
+      margin-bottom: 14px;
+      position: relative;
+    }
+    .card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 20px;
+      width: 3px;
+      height: 18px;
+      border-radius: 0 3px 3px 0;
+      background: var(--red);
+    }
+    .card-head {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: start;
+    }
+    .title {
+      margin: 0;
+      font-size: 17px;
+      line-height: 1.4;
+      font-weight: 800;
+    }
+    .state { font-size: 16px; white-space: nowrap; }
+    .phone-link {
+      color: var(--red);
+      font-size: 24px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+    .tag {
+      display: inline-flex;
+      margin-top: 14px;
+      padding: 5px 7px;
+      border-radius: 3px;
+      color: #ff44a0;
+      background: #ffe4f1;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .amount {
+      margin: 16px 0 12px;
+      color: #737985;
+      font-size: 15px;
+    }
+    .amount b {
+      color: var(--red);
+      font-size: 20px;
+      letter-spacing: .5px;
+    }
+    .detail-box {
+      padding: 14px 13px;
+      background: #f6f6f7;
+      border-radius: 4px;
+      display: grid;
+      gap: 10px;
+      font-size: 15px;
+      line-height: 1.45;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 78px 1fr auto;
+      gap: 6px;
+      align-items: center;
+    }
+    .label { color: #777e89; }
+    .value {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .used {
+      padding: 4px 8px;
+      border-radius: 3px;
+      color: var(--red);
+      background: var(--red-soft);
+      font-size: 13px;
+    }
+    .copy {
+      width: 17px;
+      height: 17px;
+      border: 1.5px solid #111;
+      border-radius: 2px;
+      position: relative;
+      display: inline-block;
+    }
+    .copy::after {
+      content: "";
+      position: absolute;
+      right: -5px;
+      top: -5px;
+      width: 13px;
+      height: 13px;
+      border: 1.5px solid var(--red);
+      border-radius: 2px;
+      background: #f6f6f7;
+    }
+    .deadline {
+      margin-top: 14px;
+      text-align: right;
+      color: #858b95;
+      font-size: 14px;
+    }
+    .bottom-nav {
+      height: 64px;
+      background: #fff;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      align-items: center;
+      border-top: 1px solid var(--line);
+    }
+    .nav-item {
+      display: grid;
+      justify-items: center;
+      gap: 4px;
+      font-size: 12px;
+      color: #222;
+    }
+    .nav-item.active { color: var(--red); font-weight: 700; }
+    .nav-icon {
+      width: 26px;
+      height: 26px;
+      stroke: currentColor;
+      stroke-width: 2.15;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
+    .nav-icon .nav-accent {
+      stroke: var(--red);
+    }
+    @media (min-width: 720px) {
+      body { padding: 20px; }
+      .phone { min-height: 780px; height: calc(100vh - 40px); border-radius: 26px; }
+    }
+  /* codex viewport-fit fix */
+    .phone {
+      display: flex;
+      flex-direction: column;
+    }
+    .status,
+    .top,
+    .flow-tabs,
+    .status-tabs,
+    .bottom-nav {
+      flex: 0 0 auto;
+    }
+    .list {
+      flex: 1 1 auto;
+      min-height: 0;
+      height: auto;
+    }
+  
+/* codex fixed phone viewport height */
+    .phone {
+      height: 100vh;
+      max-height: 100vh;
+    }
+    @media (min-width: 720px) {
+      .phone {
+        height: calc(100vh - 40px);
+        max-height: calc(100vh - 40px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="phone" aria-label="订单列表">
+    <div class="status">
+      <span>9:41</span>
+      <div class="signal">
+        <span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <span class="wifi" aria-hidden="true"><i></i></span>
+        <span class="battery" aria-hidden="true"><i></i></span>
+      </div>
+    </div>
+    <header class="top">
+      <div class="search-combo">
+        <label class="search"><input placeholder="车商、客户、订单号" /></label>
+        <button class="search-btn" type="button">搜索</button>
+      </div>
+      <button class="owner" type="button">蒋文文...</button>
+      <span class="divider"></span>
+      <button class="icon-btn" type="button" aria-label="筛选"><svg viewBox="0 0 24 24"><path d="M4 5h16l-6.3 7.1v5.3l-3.4 1.8v-7.1L4 5z"></path></svg></button>
+      <button class="icon-btn" type="button" aria-label="导出"><svg viewBox="0 0 24 24"><path d="M6 4h10l2 2v14H6zM9 10h6M9 14h5M18 15l3 3-3 3"></path></svg></button>
+    </header>
+    <nav class="flow-tabs">
+      <span>全部</span><span>预审</span><span>提报</span><span>签约</span><span class="active">请款</span><span>放款</span><span>结清</span>
+    </nav>
+    <nav class="status-tabs">
+      <span class="pill active">全部</span><span class="pill">待请款</span><span class="pill">请款审核中</span><span class="pill">请款驳回</span><span class="pill">请款补传</span>
+    </nav>
+    <section class="list">
+      <article class="card order-card-link">
+        <div class="card-head">
+          <h2 class="title">王建国</h2>
+          <span class="state">待请款</span>
+        </div>
+        <span class="tag">预审通过</span>
+        <p class="amount">融资总额: <b>8,000,000.00 元</b></p>
+        <div class="detail-box">
+          <div class="row"><span class="label">车商名称:</span><span class="value">汤山一汽大众旗舰店</span><span></span></div>
+          <div class="row"><span class="label">业务产品:</span><span class="value">乘用车</span><span></span></div>
+          <div class="row"><span class="label">车辆信息:</span><span class="value">大众探岳 2023款 改款四...</span><span class="used">二手车</span></div>
+          <div class="row"><span class="label">订单编号:</span><span class="value">20230814090025</span><span class="copy"></span></div>
+          <div class="row"><span class="label">金融专员:</span><span class="value">王玉清</span><span></span></div>
+          <div class="row"><span class="label">创建时间:</span><span class="value">2023-08-14 09:00:25</span><span></span></div>
+        </div>
+        <div class="deadline">2024-12-09&nbsp;&nbsp;12:00:00</div>
+      </article>
+      <article class="card order-card-link" id="liOrder">
+        <div class="card-head">
+          <h2 class="title">李晓丽 <span class="phone-link">☎</span></h2>
+          <span class="state">请款风险审核中</span>
+        </div>
+        <span class="tag">预审通过</span>
+        <p class="amount">融资总额: <b>-- 元</b></p>
+        <div class="detail-box">
+          <div class="row"><span class="label">车商名称:</span><span class="value">汤山一汽大众旗舰店</span><span></span></div>
+          <div class="row"><span class="label">业务产品:</span><span class="value">乘用车</span><span></span></div>
+          <div class="row"><span class="label">车辆信息:</span><span class="value">大众探岳 2023款 改款四...</span><span class="used">二手车</span></div>
+          <div class="row"><span class="label">订单编号:</span><span class="value">20230814090025</span><span class="copy"></span></div>
+          <div class="row"><span class="label">金融专员:</span><span class="value">王玉清</span><span></span></div>
+          <div class="row"><span class="label">创建时间:</span><span class="value">2023-08-14 09:00:25</span><span></span></div>
+        </div>
+        <div class="deadline">2024-12-09&nbsp;&nbsp;12:00:00</div>
+      </article>
+    </section>
+    <nav class="bottom-nav" aria-label="底部导航">
+      <span class="nav-item" id="homeNav">
+        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3.5 11.5 12 4l8.5 7.5"></path>
+          <path d="M5.5 10.5V21h13V10.5"></path>
+          <path d="M9 21v-6h6v6"></path>
+        </svg>
+        <span>首页</span>
+      </span>
+      <span class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="4" y="5" width="16" height="16" rx="3"></rect>
+          <path d="M8 16.5v-3M12 16.5V10M16 16.5v-5"></path>
+          <path class="nav-accent" d="M7.5 20h9"></path>
+        </svg>
+        <span>数据</span>
+      </span>
+      <span class="nav-item active">
+        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M7 3.5h7l4 4V21H7z"></path>
+          <path d="M14 3.5v5h5"></path>
+          <path d="M10 13h6M10 17h4"></path>
+          <path class="nav-accent" d="M9.5 7.5h2.5"></path>
+        </svg>
+        <span>订单</span>
+      </span>
+      <span class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M9 4.5h6l1.2 3H20v12.5H4V7.5h3.8z"></path>
+          <path d="M8.5 14l2.5 2.5 5-5"></path>
+          <path class="nav-accent" d="M9 4.5h6"></path>
+        </svg>
+        <span>审批</span>
+      </span>
+      <span class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="8" r="3.6"></circle>
+          <path d="M4.5 21c1.2-5.2 13.8-5.2 15 0"></path>
+          <path class="nav-accent" d="M16.5 6.5h3M18 5v3"></path>
+        </svg>
+        <span>我的</span>
+      </span>
+    </nav>
+  </main>
+  <script>
+    document.querySelectorAll(".order-card-link").forEach((card) => {
+      card.addEventListener("click", () => {
+        window.location.href = "order-detail.html";
+      });
+    });
+    document.querySelector("#homeNav").addEventListener("click", () => {
+      window.location.href = "home.html";
+    });
+  </script>
+</body>
+</html>

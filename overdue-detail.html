@@ -1,0 +1,713 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>逾期详情</title>
+  <style>
+    :root {
+      --red: #ef4b59;
+      --red-soft: #fff0f2;
+      --orange: #ff8a00;
+      --orange-soft: #fff6e8;
+      --blue: #2878ff;
+      --blue-soft: #eef5ff;
+      --green: #15945b;
+      --green-soft: #eaf8ef;
+      --purple: #7b3cff;
+      --purple-soft: #f3efff;
+      --ink: #20242b;
+      --muted: #7d8490;
+      --line: #edf0f4;
+      --bg: #f5f6f8;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #eef1f5;
+      color: var(--ink);
+      display: grid;
+      place-items: start center;
+    }
+    button, input { font: inherit; }
+    button { border: 0; background: transparent; color: inherit; cursor: pointer; }
+    .phone {
+      width: min(100vw, 390px);
+      min-height: 100vh;
+      background: var(--bg);
+      overflow: hidden;
+      box-shadow: 0 0 0 1px rgba(0,0,0,.04), 0 18px 48px rgba(30,35,45,.16);
+    }
+    .status {
+      height: 36px;
+      padding: 10px 18px 0;
+      background: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .signal { display: flex; align-items: center; gap: 6px; }
+    .bars { display: inline-flex; align-items: flex-end; gap: 2px; height: 12px; }
+    .bars i { width: 3px; border-radius: 2px; background: #111; }
+    .bars i:nth-child(1){height:4px}.bars i:nth-child(2){height:6px}.bars i:nth-child(3){height:9px}.bars i:nth-child(4){height:12px}
+    .battery { width:22px; height:11px; border:1.5px solid #111; border-radius:2px; position:relative; padding:1px; }
+    .battery::after { content:""; position:absolute; right:-4px; top:2px; width:2px; height:4px; background:#111; }
+    .battery i { display:block; width:78%; height:100%; background:#111; border-radius:1px; }
+    .titlebar {
+      height: 48px;
+      background: #fff;
+      display: grid;
+      grid-template-columns: 42px 1fr 42px;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+    }
+    .back { font-size: 25px; line-height: 1; color: #252932; }
+    .titlebar h1 { margin: 0; text-align: center; font-size: 17px; font-weight: 900; }
+    .content {
+      height: calc(100vh - 142px);
+      overflow: auto;
+      padding: 10px 12px 18px;
+      scrollbar-width: none;
+    }
+    .content::-webkit-scrollbar { display: none; }
+    .panel {
+      margin-bottom: 10px;
+      padding: 10px;
+      border-radius: 7px;
+      background: #fff;
+    }
+    .customer-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .customer-head h2 { margin: 0; font-size: 18px; font-weight: 900; }
+    .tag {
+      flex: 0 0 auto;
+      min-width: 58px;
+      height: 23px;
+      padding: 0 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      color: var(--red);
+      background: var(--red-soft);
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .tag.visit { color: var(--blue); background: var(--blue-soft); }
+    .tag.car { color: #8a4d00; background: var(--orange-soft); }
+    .tag.law { color: var(--purple); background: var(--purple-soft); }
+    .overview {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      overflow: hidden;
+      background: #fafbfc;
+    }
+    .overview div {
+      min-height: 44px;
+      padding: 6px 5px;
+      border-right: 1px solid var(--line);
+    }
+    .overview div:last-child { border-right: 0; }
+    .overview span { display: block; color: var(--muted); font-size: 10px; white-space: nowrap; }
+    .overview b { display: block; margin-top: 4px; font-size: 14px; line-height: 1; white-space: nowrap; }
+    .danger { color: var(--red); }
+    .profile-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin: 0 0 8px;
+    }
+    .profile-tag {
+      height: 22px;
+      padding: 0 8px;
+      display: inline-flex;
+      align-items: center;
+      border-radius: 12px;
+      background: #f2f4f7;
+      color: #5d6470;
+      font-size: 11px;
+      font-weight: 900;
+    }
+    .profile-tag.risk {
+      color: #bd4b00;
+      background: #fff1dc;
+    }
+    .contact-toggle {
+      width: 100%;
+      height: 31px;
+      margin-top: 8px;
+      padding: 0 2px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--line);
+      color: #5d6470;
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .contact-toggle::after {
+      content: "⌄";
+      color: #9aa2ad;
+      font-size: 17px;
+      line-height: 1;
+    }
+    .customer-panel.collapsed .contact-body { display: none; }
+    .customer-panel.collapsed .contact-toggle::after { content: "›"; }
+    .contact-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      padding-top: 6px;
+    }
+    .contact-item {
+      min-width: 0;
+      padding: 6px 7px;
+      border-radius: 6px;
+      background: #f8f9fb;
+      font-size: 12px;
+    }
+    .contact-item span { display: block; color: var(--muted); font-size: 10px; }
+    .contact-item b {
+      display: block;
+      margin-top: 3px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 12px;
+    }
+    .section-title {
+      margin: 0 0 8px;
+      font-size: 15px;
+      font-weight: 900;
+    }
+    .contract {
+      padding: 9px 0;
+      border-top: 1px solid var(--line);
+    }
+    .contract:first-of-type { border-top: 0; padding-top: 0; }
+    .contract-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 7px;
+      font-size: 13px;
+      font-weight: 900;
+    }
+    .contract-head small { color: var(--muted); font-size: 11px; font-weight: 800; }
+    .contract-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 5px;
+    }
+    .mini {
+      padding: 6px 5px;
+      border-radius: 5px;
+      background: #f8f9fb;
+    }
+    .mini span { display: block; color: var(--muted); font-size: 10px; }
+    .mini b { display: block; margin-top: 3px; font-size: 12px; white-space: nowrap; }
+    .filters {
+      display: flex;
+      gap: 6px;
+      overflow: auto;
+      margin-bottom: 8px;
+      scrollbar-width: none;
+    }
+    .filters::-webkit-scrollbar { display: none; }
+    .filter {
+      flex: 0 0 auto;
+      height: 27px;
+      padding: 0 10px;
+      border-radius: 14px;
+      background: #f3f5f8;
+      color: #626a76;
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .filter.active { color: #fff; background: #252932; }
+    .timeline {
+      display: grid;
+      gap: 8px;
+      position: relative;
+      padding-left: 13px;
+    }
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 4px;
+      top: 10px;
+      bottom: 10px;
+      width: 2px;
+      border-radius: 2px;
+      background: #e4e8ef;
+    }
+    .record {
+      position: relative;
+      padding: 8px;
+      border-radius: 7px;
+      background: #f9fafc;
+      border: 1px solid #eef1f5;
+      cursor: pointer;
+    }
+    .record:active { transform: scale(.995); }
+    .record::before {
+      content: "";
+      position: absolute;
+      left: -14px;
+      top: 13px;
+      width: 9px;
+      height: 9px;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      background: #aab2bf;
+      box-shadow: 0 0 0 2px #e4e8ef;
+    }
+    .record.mine {
+      background: #fbfcfe;
+      border-color: #e8edf4;
+      box-shadow: inset 2px 0 0 #f3b35f;
+    }
+    .record.mine::before { background: #f3b35f; box-shadow: 0 0 0 2px #f4e1c6; }
+    .record-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 5px;
+    }
+    .method {
+      height: 21px;
+      padding: 0 8px;
+      display: inline-flex;
+      align-items: center;
+      border-radius: 11px;
+      color: var(--red);
+      background: var(--red-soft);
+      font-size: 11px;
+      font-weight: 900;
+    }
+    .method.visit { color: var(--blue); background: var(--blue-soft); }
+    .method.car { color: #8a4d00; background: var(--orange-soft); }
+    .method.law { color: var(--purple); background: var(--purple-soft); }
+    .mine-mark {
+      height: 19px;
+      padding: 0 6px;
+      border-radius: 10px;
+      color: #9b640d;
+      background: #fff1dc;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .record-time { margin-left: auto; color: var(--muted); font-size: 11px; font-weight: 800; }
+    .record-step {
+      color: #252932;
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .record p { margin: 0; color: #303640; font-size: 12px; line-height: 1.45; font-weight: 700; }
+    .record-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 6px;
+    }
+    .record-meta span {
+      padding: 3px 6px;
+      border-radius: 4px;
+      background: #fff;
+      color: #6b737f;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .bottom-bar {
+      height: 58px;
+      padding: 8px 12px;
+      background: #fff;
+      border-top: 1px solid var(--line);
+    }
+    .follow-primary {
+      width: 100%;
+      height: 42px;
+      border-radius: 22px;
+      background: var(--red);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 900;
+      box-shadow: 0 8px 18px rgba(239, 75, 89, .22);
+    }
+    .modal-mask {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      background: rgba(20, 24, 32, .34);
+      align-items: center;
+      justify-content: center;
+      padding: 22px;
+    }
+    .modal-mask.show { display: flex; }
+    .modal {
+      width: min(100%, 318px);
+      border-radius: 10px;
+      background: #fff;
+      box-shadow: 0 18px 46px rgba(20, 24, 32, .22);
+      overflow: hidden;
+    }
+    .modal-body {
+      padding: 18px 16px 14px;
+    }
+    .modal-body h3 {
+      margin: 0 0 8px;
+      font-size: 17px;
+      font-weight: 900;
+    }
+    .modal-body p {
+      margin: 0;
+      color: #5f6773;
+      font-size: 13px;
+      line-height: 1.55;
+      font-weight: 700;
+    }
+    .modal-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-top: 1px solid var(--line);
+    }
+    .modal-actions button {
+      height: 44px;
+      font-size: 14px;
+      font-weight: 900;
+    }
+    .modal-actions button + button {
+      border-left: 1px solid var(--line);
+      color: var(--red);
+    }
+    @media (min-width: 720px) {
+      body { padding: 20px; }
+      .phone { min-height: 780px; height: calc(100vh - 40px); border-radius: 26px; }
+    }
+  /* codex viewport-fit fix */
+    .phone {
+      display: flex;
+      flex-direction: column;
+    }
+    .status,
+    .titlebar,
+    .bottom-bar {
+      flex: 0 0 auto;
+    }
+    .content {
+      flex: 1 1 auto;
+      min-height: 0;
+      height: auto;
+    }
+  
+/* codex fixed phone viewport height */
+    .phone {
+      height: 100vh;
+      max-height: 100vh;
+    }
+    @media (min-width: 720px) {
+      .phone {
+        height: calc(100vh - 40px);
+        max-height: calc(100vh - 40px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="phone" aria-label="逾期详情">
+    <div class="status">
+      <span>9:41</span>
+      <div class="signal">
+        <span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <span>5G</span>
+        <span class="battery" aria-hidden="true"><i></i></span>
+      </div>
+    </div>
+    <header class="titlebar">
+      <button class="back" id="backList" type="button" aria-label="返回">‹</button>
+      <h1>逾期详情</h1>
+      <span></span>
+    </header>
+    <div class="content" id="content"></div>
+    <div class="bottom-bar">
+      <button class="follow-primary" id="followBtn" type="button">跟进</button>
+    </div>
+    <div class="modal-mask" id="recentModal">
+      <div class="modal">
+        <div class="modal-body">
+          <h3>近2天已有跟进记录</h3>
+          <p>该客户近2天已有我的跟进记录，继续新增前请确认是否需要再次跟进。</p>
+        </div>
+        <div class="modal-actions">
+          <button id="cancelFollow" type="button">取消</button>
+          <button id="continueFollow" type="button">继续跟进</button>
+        </div>
+      </div>
+    </div>
+  </main>
+  <script>
+    const customers = {
+      lixiaoli: {
+        name: "李晓丽", status: "电催", days: 12, amount: 18600, paid: 8, total: 36, owner: "唐慧峰",
+        profileTags: ["惯逾", "已婚有子", "32岁", "收入不稳定", "门店销售"],
+        contacts: [
+          { label: "本人电话", value: "138****7621" },
+          { label: "紧急联系人", value: "张文博 139****2016" },
+          { label: "常住地址", value: "南京市江宁区汤山街道" },
+          { label: "单位/门店", value: "汤山一汽大众旗舰店" }
+        ],
+        contracts: [
+          { no: "CLZ20240518021", car: "大众探岳 2023款", vin: "LFV3A28K8P3021846", days: 12, amount: 18600, paid: 8, total: 36 }
+        ],
+        records: [
+          { type: "电催", mine: true, user: "唐慧峰", time: "2026-05-28 18:20", text: "电话已接通，客户承诺本周五前补缴，已提醒逾期费用和还款路径。", meta: ["本人接听", "承诺还款", "需复催"] },
+          { type: "电催", mine: false, user: "王玉清", time: "2026-05-27 10:06", text: "客户称资金周转中，暂未明确还款时间。", meta: ["电话接通", "继续观察"] },
+          { type: "电催", mine: false, user: "系统", time: "2026-05-24 09:30", text: "客户进入逾期观察名单，自动发送短信提醒。", meta: ["短信提醒", "首逾"] }
+        ]
+      },
+      wangjianguo: {
+        name: "王建国", status: "实地催收", days: 38, amount: 56200, paid: 11, total: 48, owner: "唐慧峰",
+        profileTags: ["惯逾", "已婚有子", "41岁", "个体经营", "收入波动大"],
+        contacts: [
+          { label: "本人电话", value: "136****3842" },
+          { label: "紧急联系人", value: "王建军 138****9031" },
+          { label: "经营地址", value: "南京市江宁区汤山汽贸园" },
+          { label: "备用号码", value: "025-8612****" }
+        ],
+        contracts: [
+          { no: "CLZ20240309018", car: "比亚迪汉 DM-i", vin: "LGXCH6CD7P1182034", days: 38, amount: 34200, paid: 11, total: 48 },
+          { no: "CLZ20240522007", car: "大众探岳 2023款", vin: "LFV3A28K5P3016277", days: 18, amount: 22000, paid: 5, total: 36 }
+        ],
+        records: [
+          { type: "实地催收", mine: true, user: "唐慧峰", time: "2026-05-29 09:10", text: "已到店核实，车辆仍在客户经营场地，现场沟通后客户同意三日内先还一部分。", meta: ["车辆在场", "已拍门头", "承诺部分还款"] },
+          { type: "实地催收", mine: false, user: "刘敏", time: "2026-05-29 08:35", text: "出发前核实车辆定位，GPS显示车辆仍在汤山门店附近，建议现场优先确认车况。", meta: ["GPS在线", "准备上门"] },
+          { type: "电催", mine: false, user: "刘敏", time: "2026-05-28 16:40", text: "电话沟通未达成明确还款方案，客户表示需要和合伙人确认资金安排，建议升级实地催收。", meta: ["电话接通", "转实地"] },
+          { type: "电催", mine: true, user: "唐慧峰", time: "2026-05-28 10:12", text: "联系客户本人，已告知两笔合同均存在逾期，要求当天18点前反馈还款计划。", meta: ["我的跟进", "明确时限"] },
+          { type: "电催", mine: false, user: "王玉清", time: "2026-05-27 15:24", text: "客户电话未接，已联系紧急联系人，紧急联系人称会转告客户尽快回电。", meta: ["本人未接", "联系紧急联系人"] },
+          { type: "电催", mine: false, user: "系统", time: "2026-05-25 09:00", text: "合同 CLZ20240309018 进入30+逾期，系统自动推送催收升级提醒。", meta: ["30+预警", "待人工处理"] },
+          { type: "电催", mine: false, user: "系统", time: "2026-05-18 09:00", text: "第二笔合同开始逾期，客户被纳入多合同逾期关注名单。", meta: ["多合同", "自动提醒"] }
+        ]
+      },
+      zhaoliu: {
+        name: "赵六", status: "收车", days: 64, amount: 94800, paid: 6, total: 36, owner: "董慧颖",
+        profileTags: ["多次失联", "未婚", "29岁", "工作不稳定", "车辆风险高"],
+        contacts: [
+          { label: "本人电话", value: "137****5108" },
+          { label: "紧急联系人", value: "赵敏 136****1182" },
+          { label: "车辆常停地", value: "南京市栖霞区尧化门" },
+          { label: "户籍地址", value: "江苏省南京市玄武区" }
+        ],
+        contracts: [
+          { no: "CLZ20231211031", car: "宝马3系 2022款", vin: "LBV8W3106NMM43821", days: 64, amount: 94800, paid: 6, total: 36 }
+        ],
+        records: [
+          { type: "收车", mine: false, user: "陈立", time: "2026-05-27 16:42", text: "已定位车辆位置，收车小组待客户离场后执行拖车。", meta: ["GPS有效", "已派单", "等待执行"] },
+          { type: "实地催收", mine: true, user: "唐慧峰", time: "2026-05-26 19:20", text: "现场未见客户本人，邻近商户确认车辆近期停放在附近。", meta: ["客户不在", "核实位置"] },
+          { type: "电催", mine: false, user: "王玉清", time: "2026-05-23 11:08", text: "电话联系客户无人接听，建议继续核实车辆轨迹。", meta: ["未接通", "核轨迹"] }
+        ]
+      },
+      zhouna: {
+        name: "周娜", status: "诉讼", days: 96, amount: 138500, paid: 4, total: 36, owner: "董慧颖",
+        profileTags: ["惯逾", "已婚有子", "36岁", "贸易从业", "拒绝沟通"],
+        contacts: [
+          { label: "本人电话", value: "139****4820" },
+          { label: "紧急联系人", value: "周明 137****6402" },
+          { label: "送达地址", value: "南京市雨花台区软件大道" },
+          { label: "工作单位", value: "南京某贸易有限公司" }
+        ],
+        contracts: [
+          { no: "CLZ20231126009", car: "奔驰C级 2022款", vin: "LE4WG4CB7NL026517", days: 96, amount: 138500, paid: 4, total: 36 }
+        ],
+        records: [
+          { type: "诉讼", mine: false, user: "宋佳", time: "2026-05-26 11:05", text: "诉讼资料已提交法务，等待立案反馈。", meta: ["资料齐全", "待立案"] },
+          { type: "电催", mine: true, user: "唐慧峰", time: "2026-05-24 15:32", text: "客户拒绝沟通还款，已提示后续法务流程。", meta: ["拒绝沟通", "转诉讼"] },
+          { type: "诉讼", mine: false, user: "宋佳", time: "2026-05-22 10:15", text: "完成证据包预审，缺少两次有效催收记录截图。", meta: ["证据预审", "补材料"] }
+        ]
+      },
+      shenqiang: {
+        name: "沈强", status: "电催", days: 27, amount: 32100, paid: 15, total: 48, owner: "唐慧峰",
+        profileTags: ["偶发逾期", "已婚", "39岁", "收入一般", "可联系"],
+        contacts: [
+          { label: "本人电话", value: "135****6177" },
+          { label: "紧急联系人", value: "沈丽 138****2209" },
+          { label: "常住地址", value: "南京市浦口区桥北" },
+          { label: "经营场地", value: "江北汽车园" }
+        ],
+        contracts: [
+          { no: "CLZ20240205016", car: "丰田凯美瑞 2023款", vin: "LVGBM74K7PG142906", days: 27, amount: 32100, paid: 15, total: 48 }
+        ],
+        records: [
+          { type: "电催", mine: true, user: "唐慧峰", time: "2026-05-28 14:35", text: "客户表示资金周转紧张，已约定下周一反馈具体还款计划。", meta: ["本人接听", "待反馈"] },
+          { type: "电催", mine: false, user: "王玉清", time: "2026-05-27 09:42", text: "短信提醒已送达，客户未回复。", meta: ["短信提醒", "未回复"] }
+        ]
+      },
+      chensiyuan: {
+        name: "陈思远", status: "实地催收", days: 45, amount: 71600, paid: 9, total: 36, owner: "刘敏",
+        profileTags: ["惯逾", "未婚", "34岁", "收入不稳定", "车辆异地"],
+        contacts: [
+          { label: "本人电话", value: "138****7308" },
+          { label: "紧急联系人", value: "陈浩 139****3321" },
+          { label: "车辆常停地", value: "南京南站附近停车场" },
+          { label: "备用号码", value: "180****7619" }
+        ],
+        contracts: [
+          { no: "CLZ20240121012", car: "特斯拉 Model 3", vin: "LRW3E7FA9PC812640", days: 45, amount: 71600, paid: 9, total: 36 }
+        ],
+        records: [
+          { type: "实地催收", mine: false, user: "刘敏", time: "2026-05-29 10:25", text: "已预约下午上门，准备核实车辆停放位置和客户经营情况。", meta: ["已预约", "待上门"] },
+          { type: "电催", mine: false, user: "刘敏", time: "2026-05-28 17:30", text: "电话沟通后客户称车辆在外地使用，需实地核验。", meta: ["电话接通", "需核车"] }
+        ]
+      }
+    };
+
+    const classMap = { 电催: "", 实地催收: "visit", 收车: "car", 诉讼: "law" };
+    const content = document.querySelector("#content");
+    const params = new URLSearchParams(location.search);
+    const id = params.get("id") || "lixiaoli";
+    const customer = customers[id] || customers.lixiaoli;
+    let currentType = "全部";
+
+    function money(value) {
+      return value.toLocaleString("zh-CN", { maximumFractionDigits: 0 });
+    }
+
+    function renderContracts() {
+      return customer.contracts.map((contract) => `
+        <div class="contract">
+          <div class="contract-head">
+            <span>${contract.no}</span>
+            <small>${contract.car}</small>
+          </div>
+          <div class="contract-grid">
+            <div class="mini"><span>逾期天数</span><b class="danger">${contract.days}天</b></div>
+            <div class="mini"><span>逾期金额</span><b class="danger">${money(contract.amount)}元</b></div>
+            <div class="mini"><span>还款期数</span><b>${contract.paid}/${contract.total}</b></div>
+            <div class="mini"><span>车架号</span><b>${contract.vin.slice(-6)}</b></div>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function renderContacts() {
+      return customer.contacts.map((item) => `
+        <div class="contact-item"><span>${item.label}</span><b>${item.value}</b></div>
+      `).join("");
+    }
+
+    function renderProfileTags() {
+      const riskWords = ["惯逾", "不稳定", "失联", "拒绝", "风险", "波动", "异地"];
+      return customer.profileTags.map((tag) => {
+        const isRisk = riskWords.some((word) => tag.includes(word));
+        return `<span class="profile-tag ${isRisk ? "risk" : ""}">${tag}</span>`;
+      }).join("");
+    }
+
+    function renderRecords() {
+      const records = customer.records.filter((item) => currentType === "全部" || item.type === currentType);
+      return records.map((record) => {
+        const recordIndex = customer.records.indexOf(record);
+        return `
+        <article class="record ${record.mine ? "mine" : ""}" data-index="${recordIndex}">
+          <div class="record-head">
+            <span class="method ${classMap[record.type]}">${record.type}</span>
+            ${record.mine ? '<span class="mine-mark">我的跟进</span>' : ""}
+            <span class="record-step">${record.time.slice(5, 10)}</span>
+            <span class="record-time">${record.time}</span>
+          </div>
+          <p>${record.text}</p>
+          <div class="record-meta">
+            <span>跟进人：${record.user}</span>
+            ${record.meta.map((item) => `<span>${item}</span>`).join("")}
+          </div>
+        </article>
+      `;
+      }).join("");
+    }
+
+    function render() {
+      content.innerHTML = `
+        <section class="panel customer-panel collapsed" id="customerPanel">
+          <div class="customer-head">
+            <h2>${customer.name}</h2>
+            <span class="tag ${classMap[customer.status]}">${customer.status}</span>
+          </div>
+          <div class="profile-tags">${renderProfileTags()}</div>
+          <div class="overview">
+            <div><span>总逾期天数</span><b class="danger">${customer.days}天</b></div>
+            <div><span>总逾期金额</span><b class="danger">${money(customer.amount)}</b></div>
+            <div><span>已还/总期</span><b>${customer.paid}/${customer.total}</b></div>
+            <div><span>维护人</span><b>${customer.owner}</b></div>
+          </div>
+          <button class="contact-toggle" type="button">联系人信息</button>
+          <div class="contact-body">${renderContacts()}</div>
+        </section>
+        <section class="panel">
+          <h3 class="section-title">逾期合同 ${customer.contracts.length}</h3>
+          ${renderContracts()}
+        </section>
+        <section class="panel">
+          <h3 class="section-title">跟进记录</h3>
+          <nav class="filters">
+            ${["全部", "电催", "实地催收", "收车", "诉讼"].map((type) => `<button class="filter ${currentType === type ? "active" : ""}" data-type="${type}" type="button">${type}</button>`).join("")}
+          </nav>
+          <div class="timeline">${renderRecords()}</div>
+        </section>
+      `;
+    }
+
+    document.querySelector("#backList").addEventListener("click", () => {
+      window.location.href = "overdue.html";
+    });
+    function goFollow() {
+      window.location.href = `overdue-follow.html?id=${id}&type=${encodeURIComponent(customer.status)}`;
+    }
+    document.querySelector("#followBtn").addEventListener("click", () => {
+      if (customer.records.some((record) => record.mine && new Date("2026-05-29T09:41:00") - new Date(record.time.replace(" ", "T")) <= 2 * 24 * 60 * 60 * 1000)) {
+        document.querySelector("#recentModal").classList.add("show");
+        return;
+      }
+      goFollow();
+    });
+    document.querySelector("#cancelFollow").addEventListener("click", () => {
+      document.querySelector("#recentModal").classList.remove("show");
+    });
+    document.querySelector("#continueFollow").addEventListener("click", goFollow);
+    document.querySelector("#recentModal").addEventListener("click", (event) => {
+      if (event.target.id === "recentModal") {
+        document.querySelector("#recentModal").classList.remove("show");
+      }
+    });
+    content.addEventListener("click", (event) => {
+      const contactToggle = event.target.closest(".contact-toggle");
+      if (contactToggle) {
+        contactToggle.closest(".customer-panel").classList.toggle("collapsed");
+        return;
+      }
+      const record = event.target.closest(".record");
+      if (record) {
+        window.location.href = `overdue-follow.html?id=${id}&record=${record.dataset.index}`;
+        return;
+      }
+      const filter = event.target.closest(".filter");
+      if (!filter) return;
+      currentType = filter.dataset.type;
+      render();
+    });
+
+    render();
+  </script>
+</body>
+</html>

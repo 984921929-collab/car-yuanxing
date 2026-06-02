@@ -1,0 +1,77 @@
+<svg width="750" height="348" viewBox="0 0 750 348" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="28" y1="17" x2="720" y2="342" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ff8a52"/>
+      <stop offset="0.46" stop-color="#ffc19c"/>
+      <stop offset="1" stop-color="#dcebff"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(455 174) rotate(86) scale(170 225)">
+      <stop stop-color="#f8efb1" stop-opacity=".62"/>
+      <stop offset=".5" stop-color="#ffffff" stop-opacity=".18"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="truckSide" x1="457" y1="130" x2="690" y2="196" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffffff"/>
+      <stop offset=".52" stop-color="#f7fbff"/>
+      <stop offset="1" stop-color="#d4e7ff"/>
+    </linearGradient>
+    <linearGradient id="truckBox" x1="535" y1="116" x2="698" y2="188" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffffff"/>
+      <stop offset=".58" stop-color="#eef7ff"/>
+      <stop offset="1" stop-color="#b8d6ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="750" height="348" rx="0" fill="url(#bg)"/>
+  <rect width="750" height="348" fill="url(#glow)"/>
+  <path d="M0 281c95-42 174-12 269-4 96 8 171-21 266-29 92-7 159 12 215 34v66H0v-67Z" fill="#e6f1ff" opacity=".72"/>
+  <path d="M420 95c32-67 132-71 167-5 10 19 16 41 44 50 27 8 58 15 70 46 14 36-14 74-60 79-69 8-160-18-222 12-32 16-70 22-95-9-24-29-17-69 17-83 36-14 52-32 79-90Z" fill="#fff" opacity=".32"/>
+  <path d="M331 249c31-9 265-13 360 2" stroke="#b7cbe1" stroke-width="9" stroke-linecap="round" opacity=".36"/>
+  <g transform="translate(40 30)" fill="#000">
+    <text x="30" y="24" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="500">9:41</text>
+    <rect x="551" y="6" width="5" height="18" rx="2"/>
+    <rect x="560" y="1" width="5" height="23" rx="2"/>
+    <rect x="569" y="-4" width="5" height="28" rx="2"/>
+    <rect x="578" y="-9" width="5" height="33" rx="2"/>
+    <path d="M609 6c12-10 29-10 41 0l-6 7c-8-6-21-6-29 0l-6-7Z"/>
+    <path d="M619 17c6-5 16-5 22 0l-11 12-11-12Z"/>
+    <rect x="674" y="-1" width="43" height="24" rx="5" stroke="#000" stroke-width="3"/>
+    <rect x="679" y="4" width="33" height="14" rx="2"/>
+    <rect x="720" y="7" width="3" height="9" rx="1.5"/>
+  </g>
+  <text x="32" y="201" fill="#fff" font-family="Arial, Helvetica, sans-serif" font-size="31" font-weight="800">海南盛世吉元汽车贸易有限公司</text>
+  <text x="32" y="279" fill="#fff" font-family="Arial, Helvetica, sans-serif" font-size="39" font-weight="800">董慧颖，你好!</text>
+  <g transform="translate(672 110)" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 13h8l3-6h18l3 6h8a6 6 0 0 1 6 6v31a6 6 0 0 1-6 6H12a6 6 0 0 1-6-6V19a6 6 0 0 1 6-6Z"/>
+    <circle cx="32" cy="34" r="10"/>
+  </g>
+  <g transform="translate(362 245)">
+    <ellipse cx="37" cy="46" rx="32" ry="6" fill="#7aa24a" opacity=".3"/>
+    <path d="M34 14c-8 8-8 20-1 32M45 20c-13 8-19 18-17 31" stroke="#7ba72b" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="25" cy="26" r="14" fill="#8bd116"/>
+    <circle cx="42" cy="18" r="15" fill="#93d51d"/>
+    <circle cx="51" cy="35" r="13" fill="#70bd12"/>
+    <circle cx="34" cy="52" r="13" fill="#84c91c"/>
+  </g>
+  <g transform="translate(438 120)">
+    <path d="M39 8h88l93 24 10 24v96H88l-18-7H24c-13 0-23-10-23-23V53C1 28 15 12 39 8Z" fill="url(#truckSide)"/>
+    <path d="M102 7h107l101 33v101H105L92 116V23c0-9 3-16 10-16Z" fill="url(#truckBox)" stroke="#b7c6dc" stroke-width="3"/>
+    <path d="M105 16h98l88 28v82H105V16Z" fill="url(#truckBox)"/>
+    <path d="M24 34h66v88H19c-9 0-16-7-16-16V61c0-15 7-27 21-27Z" fill="#fdfefe"/>
+    <path d="M34 45h39c8 0 12 5 12 14v23H28V55c0-6 2-10 6-10Z" fill="#202735"/>
+    <path d="M36 53h39v23H31V58c0-3 2-5 5-5Z" fill="#6d839d"/>
+    <path d="M17 93h55v9H15c-5 0-8-5-5-8 2-1 4-1 7-1Z" fill="#1f2632"/>
+    <path d="M16 112h64M0 125h86" stroke="#b9c7d6" stroke-width="4" stroke-linecap="round"/>
+    <path d="M84 48c7 5 10 14 10 27v51" stroke="#c6d5e8" stroke-width="4"/>
+    <path d="M92 23h18v116H92z" fill="#c9d7eb"/>
+    <path d="M216 38l96 28" stroke="#9fb8d9" stroke-width="3"/>
+    <circle cx="52" cy="149" r="22" fill="#26313e"/>
+    <circle cx="52" cy="149" r="11" fill="#eff5fb"/>
+    <circle cx="206" cy="149" r="22" fill="#26313e"/>
+    <circle cx="206" cy="149" r="11" fill="#eff5fb"/>
+    <circle cx="258" cy="149" r="19" fill="#26313e"/>
+    <circle cx="258" cy="149" r="9" fill="#eff5fb"/>
+    <path d="M8 128h310" stroke="#d7e4f2" stroke-width="9" stroke-linecap="round"/>
+    <path d="M93 141h211" stroke="#202735" stroke-width="3" opacity=".25"/>
+    <path d="M15 104h20" stroke="#ef4b59" stroke-width="5" stroke-linecap="round"/>
+  </g>
+</svg>

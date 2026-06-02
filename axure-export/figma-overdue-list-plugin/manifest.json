@@ -1,0 +1,7 @@
+{
+  "name": "车乐租-逾期列表页生成器",
+  "id": "chelez-overdue-list-generator",
+  "api": "1.0.0",
+  "main": "code.js",
+  "editorType": ["figma"]
+}

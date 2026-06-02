@@ -1,0 +1,1546 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>二手个人车商入网</title>
+  <style>
+    :root {
+      --red: #ef3f4f;
+      --red-dark: #dd2f40;
+      --red-soft: #fff0f2;
+      --ink: #22252b;
+      --muted: #7b808b;
+      --line: #eceef2;
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --warn: #ff8a00;
+      --ok: #19a66a;
+      --shadow: 0 10px 28px rgba(17, 22, 31, .16);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(239, 63, 79, .08), transparent 34%, rgba(25, 166, 106, .06)),
+        #eef1f5;
+      display: grid;
+      place-items: start center;
+    }
+
+    button,
+    input,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+    }
+
+    .phone {
+      width: min(100vw, 390px);
+      min-height: 100vh;
+      background: var(--bg);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, .04), 0 18px 48px rgba(30, 35, 45, .16);
+    }
+
+    .status {
+      height: 26px;
+      padding: 6px 14px 0;
+      background: var(--panel);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .signal {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .signal span {
+      display: inline-block;
+      width: 18px;
+      height: 10px;
+      border: 1.5px solid #111;
+      border-radius: 2px;
+      position: relative;
+    }
+
+    .signal span::after {
+      content: "";
+      position: absolute;
+      right: -4px;
+      top: 2px;
+      width: 2px;
+      height: 4px;
+      background: #111;
+      border-radius: 0 2px 2px 0;
+    }
+
+    .titlebar {
+      height: 46px;
+      background: var(--panel);
+      display: grid;
+      grid-template-columns: 42px 1fr 42px;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .titlebar h1 {
+      margin: 0;
+      text-align: center;
+      font-size: 17px;
+      letter-spacing: 0;
+    }
+
+    .back {
+      font-size: 26px;
+      line-height: 1;
+      color: #30343c;
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      background: var(--panel);
+      height: 39px;
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 3;
+    }
+
+    .tab {
+      position: relative;
+      color: #808690;
+      font-size: 12px;
+    }
+
+    .tab.active {
+      color: #16191f;
+      font-weight: 700;
+    }
+
+    .tab.active::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: 0;
+      width: 28px;
+      height: 3px;
+      border-radius: 4px 4px 0 0;
+      transform: translateX(-50%);
+      background: var(--red);
+    }
+
+    .tabs.inline {
+      margin: 0 -12px;
+      position: static;
+      border-top: 8px solid var(--bg);
+    }
+
+    .tabs.hidden {
+      display: none;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .content {
+      height: calc(100vh - 26px - 46px - 68px);
+      overflow: auto;
+      padding-bottom: 18px;
+    }
+
+    .section {
+      background: var(--panel);
+      margin-top: 8px;
+      padding: 0 12px;
+    }
+
+    .section:first-child {
+      margin-top: 0;
+    }
+
+    .section-title {
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .section-title small {
+      color: var(--red);
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .row {
+      min-height: 45px;
+      display: grid;
+      grid-template-columns: 108px 1fr auto;
+      align-items: center;
+      gap: 6px;
+      border-top: 1px solid var(--line);
+      font-size: 13px;
+    }
+
+    button.row {
+      width: 100%;
+      text-align: left;
+    }
+
+    .row:first-of-type {
+      border-top: 0;
+    }
+
+    .label {
+      color: #373b44;
+      line-height: 1.25;
+      justify-self: stretch;
+      text-align: left;
+    }
+
+    .label.required::before,
+    .material-title.required::before {
+      content: "* ";
+      color: var(--red);
+      font-weight: 700;
+    }
+
+    .value {
+      min-width: 0;
+      color: #16191f;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: 6px;
+      text-align: right;
+    }
+
+    .pick-row .value {
+      justify-content: flex-end;
+      text-align: right;
+      padding: 8px 0;
+    }
+
+    .pick-row .tag-list {
+      justify-content: flex-end;
+      width: 100%;
+      min-width: 0;
+    }
+
+    .placeholder {
+      color: #bec3cc;
+    }
+
+    .chev {
+      color: #9aa1ac;
+      font-size: 18px;
+    }
+
+    .field {
+      width: 100%;
+      border: 0;
+      outline: 0;
+      text-align: right;
+      color: #191d24;
+      background: transparent;
+      padding: 0;
+    }
+
+    .field::placeholder {
+      color: #bec3cc;
+    }
+
+    .radio-group,
+    .chip-group {
+      display: flex;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .radio,
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      min-height: 28px;
+      font-size: 13px;
+    }
+
+    .dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 1px solid #d6d9df;
+      display: inline-grid;
+      place-items: center;
+      background: #fff;
+      flex: 0 0 auto;
+    }
+
+    .radio.active .dot,
+    .chip.active .dot {
+      border-color: var(--red);
+      background: var(--red);
+    }
+
+    .radio.active .dot::after,
+    .chip.active .dot::after {
+      content: "";
+      width: 7px;
+      height: 4px;
+      border-left: 2px solid #fff;
+      border-bottom: 2px solid #fff;
+      transform: rotate(-45deg) translateY(-1px);
+    }
+
+    .tag-list {
+      display: flex;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .tag {
+      max-width: 100%;
+      padding: 4px 7px;
+      border-radius: 4px;
+      color: var(--red-dark);
+      background: var(--red-soft);
+      border: 1px solid #ffd8dd;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .tag.warning {
+      color: #a95d00;
+      background: #fff7ea;
+      border-color: #ffe1ad;
+    }
+
+    .selected-panel {
+      padding: 9px 12px;
+      border-bottom: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .selected-title {
+      margin-bottom: 7px;
+      color: #737985;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .selected-list {
+      min-height: 30px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      align-items: center;
+    }
+
+    .selected-empty {
+      color: #bec3cc;
+      font-size: 12px;
+    }
+
+    .selected-chip {
+      max-width: 100%;
+      min-height: 28px;
+      padding: 5px 24px 5px 8px;
+      border-radius: 4px;
+      border: 1px solid #ffd8dd;
+      background: var(--red-soft);
+      color: var(--red-dark);
+      font-size: 12px;
+      position: relative;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .selected-chip.warning {
+      color: #a95d00;
+      background: #fff7ea;
+      border-color: #ffe1ad;
+    }
+
+    .selected-chip::after {
+      content: "×";
+      position: absolute;
+      right: 7px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 14px;
+      line-height: 1;
+    }
+
+    .hint {
+      display: none;
+      margin: -1px 0 8px 108px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      color: #8d4f00;
+      background: #fff7ea;
+      border: 1px solid #ffe0a8;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .hint.show {
+      display: block;
+    }
+
+    .legacy-fields.hidden,
+    .contact-section.hidden {
+      display: none;
+    }
+
+    .account-card {
+      border-top: 1px solid var(--line);
+      padding: 10px 0 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .account-line {
+      min-height: 30px;
+      display: grid;
+      grid-template-columns: 96px 1fr;
+      gap: 8px;
+      align-items: center;
+      font-size: 13px;
+    }
+
+    .account-line span:first-child {
+      color: #565b65;
+    }
+
+    .account-line span:last-child {
+      text-align: right;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .account-input {
+      width: 100%;
+      min-width: 0;
+      border: 0;
+      outline: 0;
+      text-align: right;
+      color: #16191f;
+      background: transparent;
+      padding: 0;
+    }
+
+    .account-input:disabled {
+      color: #8d939d;
+      -webkit-text-fill-color: #8d939d;
+    }
+
+    .materials {
+      padding-bottom: 12px;
+    }
+
+    .material {
+      padding: 10px 0 6px;
+      border-top: 1px solid var(--line);
+    }
+
+    .material-title {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 4px;
+      font-size: 13px;
+      font-weight: 700;
+      text-align: left;
+      margin-bottom: 9px;
+    }
+
+    .material-title::before {
+      flex: 0 0 auto;
+    }
+
+    .material-title em {
+      font-style: normal;
+      color: #a4aab4;
+      font-weight: 500;
+      font-size: 12px;
+      margin-left: auto;
+    }
+
+    .upload-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 74px);
+      gap: 10px;
+    }
+
+    .upload {
+      width: 74px;
+      height: 74px;
+      border-radius: 4px;
+      border: 1px solid #eef0f3;
+      background: #f2f3f5;
+      position: relative;
+      display: grid;
+      place-items: center;
+      color: #b4bac4;
+      overflow: hidden;
+    }
+
+    .upload::before,
+    .upload::after {
+      content: "";
+      position: absolute;
+      background: #c4c9d1;
+      border-radius: 2px;
+    }
+
+    .upload.add::before {
+      width: 26px;
+      height: 1px;
+    }
+
+    .upload.add::after {
+      width: 1px;
+      height: 26px;
+    }
+
+    .upload.filled {
+      background: linear-gradient(135deg, #fff5f6, #eef7ff);
+      border-color: #ffdce1;
+    }
+
+    .upload.filled::before {
+      content: "已上传";
+      width: auto;
+      height: auto;
+      background: transparent;
+      color: var(--red);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .upload.filled::after {
+      display: none;
+    }
+
+    .upload .remove {
+      position: absolute;
+      right: -1px;
+      top: -1px;
+      width: 18px;
+      height: 18px;
+      border-radius: 0 4px 0 9px;
+      background: var(--red);
+      color: #fff;
+      font-size: 14px;
+      line-height: 16px;
+      z-index: 2;
+    }
+
+    .special {
+      width: 100%;
+      min-height: 112px;
+      padding: 9px 0 16px;
+      border: 0;
+      resize: none;
+      outline: 0;
+      color: #1b1f27;
+      background: transparent;
+      line-height: 1.6;
+    }
+
+    .bottom-bar {
+      height: 68px;
+      padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+      background: rgba(255, 255, 255, .96);
+      border-top: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .action {
+      height: 42px;
+      border-radius: 24px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .action.ghost {
+      border: 1px solid var(--red);
+      color: var(--red);
+      background: #fff;
+    }
+
+    .action.primary {
+      color: #fff;
+      background: var(--red);
+    }
+
+    .sheet-mask,
+    .page-mask {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 18, 24, .42);
+      z-index: 9;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease;
+    }
+
+    .sheet-mask.show,
+    .page-mask.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .sheet {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      max-height: 78vh;
+      background: #fff;
+      border-radius: 14px 14px 0 0;
+      transform: translateY(105%);
+      transition: transform .2s ease;
+      z-index: 10;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      overflow: hidden;
+    }
+
+    .sheet.show {
+      transform: translateY(0);
+    }
+
+    .sheet-head {
+      height: 48px;
+      display: grid;
+      grid-template-columns: 54px 1fr 54px;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .sheet-head strong {
+      text-align: center;
+      font-size: 15px;
+    }
+
+    .sheet-head button {
+      color: var(--red);
+      font-size: 14px;
+    }
+
+    .city-list {
+      overflow: auto;
+      padding: 8px 12px 14px;
+    }
+
+    .city-list.layered {
+      padding: 0;
+      display: grid;
+      grid-template-columns: 104px 1fr;
+      min-height: 340px;
+    }
+
+    .province-list {
+      overflow: auto;
+      background: #f5f6f8;
+      border-right: 1px solid var(--line);
+    }
+
+    .province {
+      width: 100%;
+      min-height: 42px;
+      padding: 8px 10px;
+      text-align: left;
+      color: #59606b;
+      border-bottom: 1px solid #eceef3;
+      font-size: 13px;
+    }
+
+    .province.active {
+      background: #fff;
+      color: var(--red);
+      font-weight: 700;
+      border-left: 3px solid var(--red);
+      padding-left: 7px;
+    }
+
+    .city-panel {
+      overflow: auto;
+      padding: 8px 12px 14px;
+      background: #fff;
+    }
+
+    .city-group-title {
+      height: 28px;
+      display: flex;
+      align-items: center;
+      color: #9298a2;
+      font-size: 12px;
+    }
+
+    .city-grid,
+    .brand-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .city,
+    .brand {
+      min-height: 36px;
+      border-radius: 5px;
+      border: 1px solid #e6e9ef;
+      background: #fff;
+      color: #333842;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 6px;
+      font-size: 13px;
+      position: relative;
+    }
+
+    .city.out::after {
+      content: "需特批";
+      position: absolute;
+      right: 4px;
+      top: -7px;
+      padding: 1px 4px;
+      border-radius: 8px;
+      background: #fff7ea;
+      color: #a95d00;
+      border: 1px solid #ffe0a8;
+      font-size: 10px;
+    }
+
+    .city.selected,
+    .brand.selected {
+      border-color: var(--red);
+      color: var(--red);
+      background: var(--red-soft);
+      font-weight: 700;
+    }
+
+    .sheet-foot {
+      padding: 10px 12px 14px;
+      border-top: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .mini-action {
+      height: 38px;
+      border-radius: 20px;
+      font-weight: 700;
+    }
+
+    .mini-action.reset {
+      border: 1px solid #dfe3ea;
+      color: #626976;
+    }
+
+    .mini-action.confirm {
+      background: var(--red);
+      color: #fff;
+    }
+
+    .brand-page {
+      position: absolute;
+      inset: 0;
+      z-index: 11;
+      background: var(--bg);
+      transform: translateX(105%);
+      transition: transform .2s ease;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+    }
+
+    .brand-page.show {
+      transform: translateX(0);
+    }
+
+    .brand-search {
+      margin: 10px 12px 8px;
+      height: 38px;
+      border-radius: 5px;
+      border: 1px solid #e5e8ee;
+      background: #fff;
+      padding: 0 11px;
+      outline: 0;
+    }
+
+    .brand-body {
+      overflow: auto;
+      padding: 0 12px 14px;
+    }
+
+    .brand-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .toast {
+      position: absolute;
+      left: 50%;
+      bottom: 88px;
+      max-width: 82%;
+      padding: 9px 13px;
+      border-radius: 20px;
+      background: rgba(18, 22, 30, .86);
+      color: #fff;
+      font-size: 13px;
+      transform: translate(-50%, 16px);
+      opacity: 0;
+      pointer-events: none;
+      transition: .18s ease;
+      z-index: 20;
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    @media (min-width: 720px) {
+      body {
+        padding: 20px;
+      }
+
+      .phone {
+        min-height: 780px;
+        height: calc(100vh - 40px);
+        border-radius: 26px;
+      }
+    }
+  /* codex viewport-fit fix */
+    .phone {
+      display: flex;
+      flex-direction: column;
+    }
+    .status,
+    .titlebar,
+    .bottom-bar {
+      flex: 0 0 auto;
+    }
+    .content {
+      flex: 1 1 auto;
+      min-height: 0;
+      height: auto;
+    }
+  
+/* codex fixed phone viewport height */
+    .phone {
+      height: 100vh;
+      max-height: 100vh;
+    }
+    @media (min-width: 720px) {
+      .phone {
+        height: calc(100vh - 40px);
+        max-height: calc(100vh - 40px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="phone" aria-label="二手个人车商入网原型">
+    <div class="status">
+      <span>9:41</span>
+      <div class="signal">5G <span aria-hidden="true"></span></div>
+    </div>
+
+    <header class="titlebar">
+      <button class="back page-back" type="button" aria-label="返回">‹</button>
+      <h1>车商进件</h1>
+      <span></span>
+    </header>
+
+    <div class="content" id="content">
+      <section class="section">
+        <div class="row">
+          <div class="label required">车商级别</div>
+          <div class="value">
+            <div class="radio-group" data-single="dealerLevel">
+              <button class="radio" data-value="一级" type="button"><span class="dot"></span>一级</button>
+              <button class="radio" data-value="二级" type="button"><span class="dot"></span>二级</button>
+              <button class="radio active" data-value="个体" type="button"><span class="dot"></span>个体</button>
+            </div>
+          </div>
+        </div>
+
+        <nav class="tabs inline hidden" id="stepTabs" aria-label="入网步骤">
+          <button class="tab active" type="button" data-target="workSection">工作信息</button>
+          <button class="tab" type="button" data-target="storeSection">门店基本信息</button>
+          <button class="tab" type="button" data-target="contactSection">联系人信息</button>
+          <button class="tab" type="button" data-target="accountSection">收款账号</button>
+        </nav>
+
+        <div class="section-title" id="workSection">
+          <span>工作信息</span>
+          <small id="modeTip" class="hidden">二手个人无需工商与联系人信息</small>
+        </div>
+
+        <div class="legacy-fields hidden" id="legacyFields">
+          <div class="row">
+            <div class="label required">车商名称</div>
+            <div class="value"><input class="field" value="河南某某汽车服务有限公司" /></div>
+          </div>
+          <div class="row">
+            <div class="label required">统一社会信用代码</div>
+            <div class="value"><input class="field" value="91410100MA9XXXXXXX" /></div>
+          </div>
+          <div class="row">
+            <div class="label required">注册地址</div>
+            <div class="value"><input class="field" value="郑州市金水区某某路" /></div>
+          </div>
+        </div>
+
+        <div class="row personal-only">
+          <div class="label required">姓名</div>
+          <div class="value"><input class="field" id="personName" value="张三" placeholder="请输入姓名" /></div>
+        </div>
+
+        <div class="row personal-only">
+          <div class="label required">联系方式</div>
+          <div class="value"><input class="field" id="phone" value="13800138000" inputmode="tel" placeholder="请输入手机号" /></div>
+        </div>
+
+        <div class="row personal-only">
+          <div class="label required">是否中介</div>
+          <div class="value">
+            <div class="radio-group" data-single="agent">
+              <button class="radio active" data-value="是" type="button"><span class="dot"></span>是</button>
+              <button class="radio" data-value="否" type="button"><span class="dot"></span>否</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="label required">业务产品</div>
+          <div class="value">
+            <div class="chip-group" data-multi="products">
+              <button class="chip active" data-value="中重卡" type="button"><span class="dot"></span>中重卡</button>
+              <button class="chip active" data-value="轻卡" type="button"><span class="dot"></span>轻卡</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="label required">业务类型</div>
+          <div class="value">二手车</div>
+        </div>
+
+        <button class="row pick-row" id="openCity" type="button">
+          <div class="label required">展业城市</div>
+          <div class="value">
+            <div class="tag-list" id="cityValue"></div>
+          </div>
+          <span class="chev">›</span>
+        </button>
+        <div class="hint" id="cityHint">已选择非本人展业范围城市，请在证明材料中上传“跨区域入网特批材料”。</div>
+
+        <div class="row">
+          <div class="label required">车商评级</div>
+          <div class="value">
+            <div class="radio-group" data-single="rating">
+              <button class="radio active" data-value="核心车商" type="button"><span class="dot"></span>核心车商</button>
+              <button class="radio" data-value="普通车商" type="button"><span class="dot"></span>普通车商</button>
+            </div>
+          </div>
+        </div>
+
+        <button class="row pick-row" id="openBrand" type="button">
+          <div class="label required">主流销售品牌</div>
+          <div class="value">
+            <div class="tag-list" id="brandValue"></div>
+          </div>
+          <span class="chev">›</span>
+        </button>
+      </section>
+
+      <section class="section" id="storeSection">
+        <div class="section-title"><span>门店基本信息</span></div>
+        <div class="row">
+          <div class="label required">是否有展厅</div>
+          <div class="value">
+            <div class="radio-group" data-single="showroom">
+              <button class="radio active" data-value="是" type="button"><span class="dot"></span>是</button>
+              <button class="radio" data-value="否" type="button"><span class="dot"></span>否</button>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="label required">经营类型</div>
+          <div class="value">
+            <div class="radio-group" data-single="operation">
+              <button class="radio active" data-value="二手车" type="button"><span class="dot"></span>二手车</button>
+              <button class="radio" data-value="新车" type="button"><span class="dot"></span>新车</button>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="label">门店地址</div>
+          <div class="value"><input class="field" placeholder="请输入详细地址" /></div>
+        </div>
+      </section>
+
+      <section class="section contact-section hidden" id="contactSection">
+        <div class="section-title">
+          <span>联系人</span>
+          <small>公户入网必填</small>
+        </div>
+        <div class="row">
+          <div class="label required">业务联系人</div>
+          <div class="value"><input class="field" value="李四" /></div>
+        </div>
+        <div class="row">
+          <div class="label required">联系人手机号</div>
+          <div class="value"><input class="field" value="13900139000" /></div>
+        </div>
+      </section>
+
+      <section class="section" id="accountSection">
+        <div class="section-title">
+          <span>收款账号</span>
+        </div>
+        <div class="account-card">
+          <label class="account-line"><span>账户类型</span><input class="account-input" id="accountType" value="个人" /></label>
+          <label class="account-line"><span>开户名称</span><input class="account-input" id="accountName" value="张三" /></label>
+          <label class="account-line"><span>收款账号</span><input class="account-input" value="6222 0000 8888 6666" inputmode="numeric" /></label>
+          <label class="account-line"><span>开户行</span><input class="account-input" value="招商银行郑州花园路支行" /></label>
+        </div>
+      </section>
+
+      <section class="section materials">
+        <div class="section-title"><span>证明材料</span></div>
+        <div class="material" data-material="idcard">
+          <div class="material-title required">身份证</div>
+          <div class="upload-grid">
+            <button class="upload filled" type="button"><span class="remove">×</span></button>
+          </div>
+        </div>
+        <div class="material" data-material="clockin">
+          <div class="material-title required">打卡照</div>
+          <div class="upload-grid">
+            <button class="upload add" type="button" aria-label="上传打卡照"></button>
+          </div>
+        </div>
+        <div class="material" data-material="receipt">
+          <div class="material-title required">收款证明</div>
+          <div class="upload-grid">
+            <button class="upload add" type="button" aria-label="上传收款证明"></button>
+          </div>
+        </div>
+        <div class="material" data-material="bankcard">
+          <div class="material-title required">银行卡正面</div>
+          <div class="upload-grid">
+            <button class="upload filled" type="button"><span class="remove">×</span></button>
+          </div>
+        </div>
+        <div class="material" data-material="experience">
+          <div class="material-title required">佐证从业经验资料</div>
+          <div class="upload-grid">
+            <button class="upload add" type="button" aria-label="上传从业经验资料"></button>
+          </div>
+        </div>
+        <div class="material hidden" data-material="cross">
+          <div class="material-title required">跨区域入网特批材料</div>
+          <div class="upload-grid">
+            <button class="upload add" id="crossUpload" type="button" aria-label="上传跨区域入网特批材料"></button>
+          </div>
+        </div>
+        <div class="material">
+          <div class="material-title">合作商合作协议 <em>非必填</em></div>
+          <div class="upload-grid">
+            <button class="upload add" type="button" aria-label="上传合作商合作协议"></button>
+          </div>
+        </div>
+        <div class="material">
+          <div class="material-title">二手个人征信报告 <em>非必填</em></div>
+          <div class="upload-grid">
+            <button class="upload add" type="button" aria-label="上传征信报告"></button>
+          </div>
+        </div>
+        <div class="material">
+          <div class="material-title">其他材料 <em>非必填</em></div>
+          <div class="upload-grid">
+            <button class="upload add" type="button" aria-label="上传其他材料"></button>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-title"><span>特殊说明</span></div>
+        <textarea class="special" placeholder="请输入补充说明，例如展业范围、从业经验、客户资源等"></textarea>
+      </section>
+    </div>
+
+    <footer class="bottom-bar">
+      <button class="action ghost" id="saveDraft" type="button">暂存</button>
+      <button class="action primary" id="submit" type="button">提交</button>
+    </footer>
+
+    <div class="sheet-mask" id="sheetMask"></div>
+    <section class="sheet" id="citySheet" aria-label="选择展业城市">
+      <div class="sheet-head">
+        <button type="button" id="closeCity">取消</button>
+        <strong>展业城市</strong>
+        <button type="button" id="doneCity">确定</button>
+      </div>
+      <div class="selected-panel">
+        <div class="selected-title">已选择展业城市</div>
+        <div class="selected-list" id="selectedCityList"></div>
+      </div>
+      <div class="city-list" id="cityList"></div>
+      <div class="sheet-foot">
+        <button class="mini-action reset" id="resetCity" type="button">清空</button>
+        <button class="mini-action confirm" id="confirmCity" type="button">确认选择</button>
+      </div>
+    </section>
+
+    <div class="page-mask" id="brandMask"></div>
+    <section class="brand-page" id="brandPage" aria-label="选择主流销售品牌">
+      <header class="titlebar">
+        <button class="back" id="backBrand" type="button" aria-label="返回">‹</button>
+        <h1>选择销售品牌</h1>
+        <button id="doneBrand" type="button" style="color: var(--red); font-size: 14px;">完成</button>
+      </header>
+      <div>
+        <input class="brand-search" id="brandSearch" placeholder="搜索品牌" />
+      </div>
+      <div class="selected-panel">
+        <div class="selected-title">已选择品牌</div>
+        <div class="selected-list" id="selectedBrandList"></div>
+      </div>
+      <div class="brand-body">
+        <div class="brand-grid" id="brandGrid"></div>
+      </div>
+      <div class="sheet-foot">
+        <button class="mini-action reset" id="resetBrand" type="button">清空</button>
+        <button class="mini-action confirm" id="confirmBrand" type="button">确认选择</button>
+      </div>
+    </section>
+
+    <div class="toast" id="toast"></div>
+  </main>
+
+  <script>
+    const state = {
+      dealerLevel: "个体",
+      activeProvince: "我的展业城市",
+      selectedCities: ["郑州", "洛阳"],
+      selectedBrands: ["解放", "东风", "福田"],
+      uploadedCross: false
+    };
+
+    const cityGroups = {
+      mine: {
+        title: "我的展业城市",
+        cities: ["郑州", "洛阳", "开封", "新乡", "许昌", "焦作", "商丘", "周口", "南阳"]
+      },
+    };
+
+    const provinceCities = {
+      我的展业城市: cityGroups.mine.cities,
+      河南: ["郑州", "洛阳", "开封", "新乡", "许昌", "焦作", "商丘", "周口", "南阳"],
+      北京: ["北京"],
+      上海: ["上海"],
+      广东: ["广州", "深圳", "佛山", "东莞", "惠州", "珠海"],
+      浙江: ["杭州", "宁波", "温州", "金华", "嘉兴"],
+      江苏: ["南京", "苏州", "无锡", "徐州", "常州"],
+      四川: ["成都", "绵阳", "德阳", "南充"],
+      湖北: ["武汉", "襄阳", "宜昌", "十堰"],
+      山东: ["济南", "青岛", "临沂", "潍坊", "济宁"],
+      陕西: ["西安", "咸阳", "宝鸡", "榆林"],
+      河北: ["石家庄", "唐山", "保定", "邯郸"],
+      湖南: ["长沙", "株洲", "岳阳", "衡阳"],
+      安徽: ["合肥", "芜湖", "阜阳", "蚌埠"]
+    };
+
+    const myCitySet = new Set(cityGroups.mine.cities);
+    const brands = ["解放", "东风", "福田", "陕汽", "重汽", "江淮", "江铃", "庆铃", "上汽红岩", "三一", "徐工", "北奔", "依维柯", "大运", "飞碟", "金龙", "宇通", "比亚迪商用"];
+
+    const $ = (selector) => document.querySelector(selector);
+    const $$ = (selector) => [...document.querySelectorAll(selector)];
+
+    function toast(message) {
+      const node = $("#toast");
+      node.textContent = message;
+      node.classList.add("show");
+      window.clearTimeout(toast.timer);
+      toast.timer = window.setTimeout(() => node.classList.remove("show"), 1800);
+    }
+
+    function setDealerMode(value) {
+      state.dealerLevel = value;
+      const isPersonal = value === "个体";
+      $("#stepTabs").classList.toggle("hidden", isPersonal);
+      $("#legacyFields").classList.toggle("hidden", isPersonal);
+      $("#contactSection").classList.toggle("hidden", isPersonal);
+      $("#storeSection").classList.toggle("hidden", isPersonal);
+      $$(".personal-only").forEach((item) => item.style.display = isPersonal ? "grid" : "none");
+      $("#modeTip").textContent = "";
+      $("#accountType").value = isPersonal ? "个人" : "公司";
+      $("#accountType").disabled = isPersonal;
+      $("#accountName").value = isPersonal ? ($("#personName").value || "张三") : "河南某某汽车服务有限公司";
+      if (!isPersonal) updateActiveStep();
+    }
+
+    const stepAnchors = [
+      { id: "workSection", tab: null },
+      { id: "storeSection", tab: null },
+      { id: "contactSection", tab: null },
+      { id: "accountSection", tab: null }
+    ];
+
+    function setActiveStep(targetId) {
+      $$("#stepTabs .tab").forEach((tab) => {
+        tab.classList.toggle("active", tab.dataset.target === targetId);
+      });
+    }
+
+    function scrollToStep(targetId) {
+      const target = $(`#${targetId}`);
+      if (!target || target.closest(".hidden")) return;
+      const content = $("#content");
+      const tabs = $("#stepTabs");
+      const top = target.offsetTop - tabs.offsetHeight - 6;
+      content.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+      setActiveStep(targetId);
+    }
+
+    function updateActiveStep() {
+      if ($("#stepTabs").classList.contains("hidden")) return;
+      const content = $("#content");
+      const tabsHeight = $("#stepTabs").offsetHeight + 12;
+      let activeId = "workSection";
+      stepAnchors.forEach((item) => {
+        const target = $(`#${item.id}`);
+        if (!target || target.closest(".hidden")) return;
+        if (target.offsetTop - content.scrollTop <= tabsHeight) activeId = item.id;
+      });
+      setActiveStep(activeId);
+    }
+
+    function refreshTags(containerId, values, cityMode = false) {
+      const container = $(containerId);
+      container.innerHTML = "";
+      if (!values.length) {
+        const empty = document.createElement("span");
+        empty.className = "placeholder";
+        empty.textContent = "请选择";
+        container.appendChild(empty);
+        return;
+      }
+      values.forEach((value) => {
+        const tag = document.createElement("span");
+        tag.className = "tag";
+        if (cityMode && !myCitySet.has(value)) tag.classList.add("warning");
+        tag.textContent = value;
+        container.appendChild(tag);
+      });
+    }
+
+    function hasCrossCity() {
+      return state.selectedCities.some((city) => !myCitySet.has(city));
+    }
+
+    function updateCityHint() {
+      const need = hasCrossCity();
+      $("#cityHint").classList.toggle("show", need);
+      document.querySelector("[data-material='cross']").classList.toggle("hidden", !need);
+      const crossTitle = document.querySelector("[data-material='cross'] .material-title");
+      crossTitle.classList.toggle("required", need);
+      crossTitle.querySelector("em")?.remove();
+      if (!need) {
+        const optional = document.createElement("em");
+        optional.textContent = "未跨区域时非必填";
+        crossTitle.appendChild(optional);
+      }
+    }
+
+    function renderSelectedList(containerId, values, onRemove, cityMode = false) {
+      const container = $(containerId);
+      container.innerHTML = "";
+      if (!values.length) {
+        const empty = document.createElement("span");
+        empty.className = "selected-empty";
+        empty.textContent = "暂未选择";
+        container.appendChild(empty);
+        return;
+      }
+      values.forEach((value) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "selected-chip";
+        if (cityMode && !myCitySet.has(value)) button.classList.add("warning");
+        button.textContent = value;
+        button.addEventListener("click", () => onRemove(value));
+        container.appendChild(button);
+      });
+    }
+
+    function renderSelectedCities() {
+      renderSelectedList("#selectedCityList", state.selectedCities, (city) => {
+        state.selectedCities = state.selectedCities.filter((item) => item !== city);
+        renderCities();
+      }, true);
+    }
+
+    function renderSelectedBrands() {
+      renderSelectedList("#selectedBrandList", state.selectedBrands, (brand) => {
+        state.selectedBrands = state.selectedBrands.filter((item) => item !== brand);
+        renderBrands();
+      });
+    }
+
+    function renderCities() {
+      renderSelectedCities();
+      const list = $("#cityList");
+      if (!provinceCities[state.activeProvince]) state.activeProvince = "我的展业城市";
+      list.classList.add("layered");
+      list.innerHTML = `<div class="province-list"></div><div class="city-panel"><div class="city-group-title">${state.activeProvince}</div><div class="city-grid"></div></div>`;
+      const provinceList = list.querySelector(".province-list");
+      Object.keys(provinceCities).forEach((province) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "province";
+        if (province === state.activeProvince) button.classList.add("active");
+        button.textContent = province;
+        button.addEventListener("click", () => {
+          state.activeProvince = province;
+          renderCities();
+        });
+        provinceList.appendChild(button);
+      });
+      renderCityButtons(list.querySelector(".city-grid"), provinceCities[state.activeProvince]);
+    }
+
+    function renderCityButtons(grid, cities) {
+      cities.forEach((city) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "city";
+        if (!myCitySet.has(city)) button.classList.add("out");
+        if (state.selectedCities.includes(city)) button.classList.add("selected");
+        button.textContent = city;
+        button.addEventListener("click", () => {
+          if (state.selectedCities.includes(city)) {
+            state.selectedCities = state.selectedCities.filter((item) => item !== city);
+          } else {
+            state.selectedCities.push(city);
+            if (!myCitySet.has(city)) toast("该城市不在你的展业范围内，提交前需上传特批材料");
+          }
+          renderCities();
+        });
+        grid.appendChild(button);
+      });
+    }
+
+    function openCitySheet() {
+      $("#sheetMask").classList.add("show");
+      $("#citySheet").classList.add("show");
+      renderCities();
+    }
+
+    function closeCitySheet(apply = false) {
+      if (apply) {
+        refreshTags("#cityValue", state.selectedCities, true);
+        updateCityHint();
+      }
+      $("#sheetMask").classList.remove("show");
+      $("#citySheet").classList.remove("show");
+    }
+
+    function renderBrands() {
+      renderSelectedBrands();
+      const keyword = $("#brandSearch").value.trim();
+      const grid = $("#brandGrid");
+      grid.innerHTML = "";
+      brands
+        .filter((brand) => !keyword || brand.includes(keyword))
+        .forEach((brand) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "brand";
+          if (state.selectedBrands.includes(brand)) button.classList.add("selected");
+          button.textContent = brand;
+          button.addEventListener("click", () => {
+            if (state.selectedBrands.includes(brand)) {
+              state.selectedBrands = state.selectedBrands.filter((item) => item !== brand);
+            } else {
+              state.selectedBrands.push(brand);
+            }
+            renderBrands();
+          });
+          grid.appendChild(button);
+        });
+    }
+
+    function openBrandPage() {
+      $("#brandMask").classList.add("show");
+      $("#brandPage").classList.add("show");
+      renderBrands();
+    }
+
+    function closeBrandPage(apply = false) {
+      if (apply) refreshTags("#brandValue", state.selectedBrands);
+      $("#brandMask").classList.remove("show");
+      $("#brandPage").classList.remove("show");
+    }
+
+    $$(".radio-group").forEach((group) => {
+      group.addEventListener("click", (event) => {
+        const button = event.target.closest(".radio");
+        if (!button) return;
+        group.querySelectorAll(".radio").forEach((item) => item.classList.remove("active"));
+        button.classList.add("active");
+        if (group.dataset.single === "dealerLevel") setDealerMode(button.dataset.value);
+      });
+    });
+
+    $$(".chip-group").forEach((group) => {
+      group.addEventListener("click", (event) => {
+        const button = event.target.closest(".chip");
+        if (!button) return;
+        button.classList.toggle("active");
+        if (!group.querySelector(".chip.active")) {
+          button.classList.add("active");
+          toast("业务产品至少选择一项");
+        }
+      });
+    });
+
+    $("#personName").addEventListener("input", () => {
+      if (state.dealerLevel === "个体") $("#accountName").value = $("#personName").value || "待填写";
+    });
+
+    $(".page-back").addEventListener("click", () => {
+      window.location.href = "list.html";
+    });
+
+    $("#stepTabs").addEventListener("click", (event) => {
+      const tab = event.target.closest(".tab");
+      if (!tab) return;
+      scrollToStep(tab.dataset.target);
+    });
+    $("#content").addEventListener("scroll", () => {
+      window.clearTimeout(updateActiveStep.timer);
+      updateActiveStep.timer = window.setTimeout(updateActiveStep, 40);
+    });
+
+    $("#openCity").addEventListener("click", openCitySheet);
+    $("#closeCity").addEventListener("click", () => closeCitySheet(false));
+    $("#doneCity").addEventListener("click", () => closeCitySheet(true));
+    $("#confirmCity").addEventListener("click", () => closeCitySheet(true));
+    $("#sheetMask").addEventListener("click", () => closeCitySheet(false));
+    $("#resetCity").addEventListener("click", () => {
+      state.selectedCities = [];
+      renderCities();
+    });
+
+    $("#openBrand").addEventListener("click", openBrandPage);
+    $("#backBrand").addEventListener("click", () => closeBrandPage(false));
+    $("#doneBrand").addEventListener("click", () => closeBrandPage(true));
+    $("#confirmBrand").addEventListener("click", () => closeBrandPage(true));
+    $("#brandMask").addEventListener("click", () => closeBrandPage(false));
+    $("#brandSearch").addEventListener("input", renderBrands);
+    $("#resetBrand").addEventListener("click", () => {
+      state.selectedBrands = [];
+      renderBrands();
+    });
+
+    function ensureUploadEntry(grid) {
+      if (!grid.querySelector(".upload.add")) {
+        const add = document.createElement("button");
+        add.className = "upload add";
+        add.type = "button";
+        add.setAttribute("aria-label", "上传材料");
+        if (grid.closest("[data-material='cross']")) add.id = "crossUpload";
+        grid.appendChild(add);
+      }
+    }
+
+    $$(".materials .upload-grid").forEach(ensureUploadEntry);
+
+    $(".materials").addEventListener("click", (event) => {
+      const button = event.target.closest(".upload");
+      if (!button) return;
+      const grid = button.closest(".upload-grid");
+      if (event.target.classList.contains("remove")) {
+        button.remove();
+        if (grid.closest("[data-material='cross']")) {
+          state.uploadedCross = !!grid.querySelector(".upload.filled");
+        }
+        ensureUploadEntry(grid);
+        return;
+      }
+      if (!button.classList.contains("add")) return;
+      button.classList.remove("add");
+      button.classList.add("filled");
+      const remove = document.createElement("span");
+      remove.className = "remove";
+      remove.textContent = "×";
+      button.appendChild(remove);
+      if (grid.closest("[data-material='cross']")) state.uploadedCross = true;
+      ensureUploadEntry(grid);
+      toast("已模拟上传材料");
+    });
+
+    $("#saveDraft").addEventListener("click", () => toast("已暂存当前入网信息"));
+    $("#submit").addEventListener("click", () => {
+      if (!$("#personName").value.trim() && state.dealerLevel === "个体") return toast("请填写姓名");
+      if (!$("#phone").value.trim() && state.dealerLevel === "个体") return toast("请填写联系方式");
+      if (!state.selectedCities.length) return toast("请选择展业城市");
+      if (!state.selectedBrands.length) return toast("请选择主流销售品牌");
+      if (hasCrossCity() && !state.uploadedCross) return toast("跨区域城市需上传特批材料");
+      toast("校验通过，可提交二手个人车商入网");
+      window.setTimeout(() => {
+        window.location.href = "detail.html";
+      }, 700);
+    });
+
+    refreshTags("#cityValue", state.selectedCities, true);
+    refreshTags("#brandValue", state.selectedBrands);
+    updateCityHint();
+    setDealerMode("个体");
+    updateActiveStep();
+  </script>
+</body>
+</html>

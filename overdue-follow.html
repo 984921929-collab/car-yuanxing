@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>新增跟进</title>
+  <style>
+    :root {
+      --red: #ef4b59;
+      --red-soft: #fff0f2;
+      --orange: #ff8a00;
+      --orange-soft: #fff6e8;
+      --blue: #2878ff;
+      --blue-soft: #eef5ff;
+      --purple: #7b3cff;
+      --purple-soft: #f3efff;
+      --ink: #20242b;
+      --muted: #7d8490;
+      --line: #edf0f4;
+      --bg: #f5f6f8;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #eef1f5;
+      color: var(--ink);
+      display: grid;
+      place-items: start center;
+    }
+    button, input, textarea { font: inherit; }
+    button { border: 0; background: transparent; color: inherit; cursor: pointer; }
+    .readonly input,
+    .readonly textarea {
+      color: #4a515c;
+      background: #f6f7f9;
+    }
+    .readonly .seg button,
+    .readonly .chip,
+    .readonly .upload,
+    .readonly .submit {
+      pointer-events: none;
+    }
+    .phone {
+      width: min(100vw, 390px);
+      min-height: 100vh;
+      background: var(--bg);
+      overflow: hidden;
+      box-shadow: 0 0 0 1px rgba(0,0,0,.04), 0 18px 48px rgba(30,35,45,.16);
+    }
+    .status {
+      height: 36px;
+      padding: 10px 18px 0;
+      background: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .signal { display: flex; align-items: center; gap: 6px; }
+    .bars { display: inline-flex; align-items: flex-end; gap: 2px; height: 12px; }
+    .bars i { width: 3px; border-radius: 2px; background: #111; }
+    .bars i:nth-child(1){height:4px}.bars i:nth-child(2){height:6px}.bars i:nth-child(3){height:9px}.bars i:nth-child(4){height:12px}
+    .battery { width:22px; height:11px; border:1.5px solid #111; border-radius:2px; position:relative; padding:1px; }
+    .battery::after { content:""; position:absolute; right:-4px; top:2px; width:2px; height:4px; background:#111; }
+    .battery i { display:block; width:78%; height:100%; background:#111; border-radius:1px; }
+    .titlebar {
+      height: 48px;
+      background: #fff;
+      display: grid;
+      grid-template-columns: 42px 1fr 42px;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+    }
+    .back { font-size: 25px; line-height: 1; color: #252932; }
+    .titlebar h1 { margin: 0; text-align: center; font-size: 17px; font-weight: 900; }
+    .content {
+      height: calc(100vh - 142px);
+      overflow: auto;
+      padding: 10px 12px 14px;
+      scrollbar-width: none;
+    }
+    .content::-webkit-scrollbar { display: none; }
+    .panel {
+      margin-bottom: 10px;
+      padding: 10px;
+      border-radius: 7px;
+      background: #fff;
+    }
+    .customer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .customer h2 { margin: 0; font-size: 18px; font-weight: 900; }
+    .tag {
+      height: 23px;
+      padding: 0 8px;
+      display: inline-flex;
+      align-items: center;
+      border-radius: 12px;
+      color: var(--red);
+      background: var(--red-soft);
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .tag.visit { color: var(--blue); background: var(--blue-soft); }
+    .tag.car { color: #8a4d00; background: var(--orange-soft); }
+    .tag.law { color: var(--purple); background: var(--purple-soft); }
+    .seg {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+    .seg button {
+      height: 30px;
+      border-radius: 15px;
+      background: #f2f4f7;
+      color: #626a76;
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .seg button.active { color: #fff; background: #252932; }
+    .seg button:disabled {
+      color: #aeb5c0;
+      background: #eef1f5;
+      cursor: not-allowed;
+      opacity: .75;
+    }
+    .seg button.active:disabled {
+      color: #fff;
+      background: #252932;
+      opacity: 1;
+    }
+    .form {
+      display: grid;
+      gap: 9px;
+    }
+    .field label {
+      display: block;
+      margin-bottom: 5px;
+      color: #5d6470;
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .field input,
+    .field textarea {
+      width: 100%;
+      border: 1px solid #e1e5ec;
+      border-radius: 7px;
+      outline: 0;
+      background: #fbfcfe;
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .field input { height: 36px; padding: 0 10px; }
+    .field textarea { min-height: 78px; padding: 9px 10px; resize: none; line-height: 1.45; }
+    .two {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+    .chip {
+      height: 28px;
+      padding: 0 10px;
+      display: inline-flex;
+      align-items: center;
+      border-radius: 14px;
+      background: #f2f4f7;
+      color: #58606b;
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .hint {
+      padding: 8px 9px;
+      border-radius: 7px;
+      background: #f8f9fb;
+      color: #69717d;
+      font-size: 12px;
+      line-height: 1.45;
+      font-weight: 700;
+    }
+    .section-label {
+      margin: 2px 0 -2px;
+      color: #20242b;
+      font-size: 13px;
+      font-weight: 900;
+    }
+    .upload-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+    }
+    .photo-groups {
+      display: grid;
+      gap: 9px;
+    }
+    .photo-group {
+      display: grid;
+      gap: 6px;
+    }
+    .photo-title {
+      color: #5d6470;
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .upload {
+      height: 68px;
+      border: 1px dashed #cfd6df;
+      border-radius: 7px;
+      background: #fbfcfe;
+      color: #7d8490;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .upload.add {
+      color: var(--red);
+      background: #fffafb;
+      border-color: #f4b5bd;
+    }
+    .upload.filled {
+      position: relative;
+      border-style: solid;
+      border-color: #dce3ec;
+      background: #f7f9fc;
+      color: #252932;
+    }
+    .upload .remove {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      width: 18px;
+      height: 18px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: #fff;
+      background: var(--red);
+      font-size: 13px;
+      line-height: 1;
+    }
+    .submit-bar {
+      height: 58px;
+      padding: 8px 12px;
+      background: #fff;
+      border-top: 1px solid var(--line);
+    }
+    .submit {
+      width: 100%;
+      height: 42px;
+      border-radius: 22px;
+      background: var(--red);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 900;
+    }
+    @media (min-width: 720px) {
+      body { padding: 20px; }
+      .phone { min-height: 780px; height: calc(100vh - 40px); border-radius: 26px; }
+    }
+  /* codex viewport-fit fix */
+    .phone {
+      display: flex;
+      flex-direction: column;
+    }
+    .status,
+    .titlebar,
+    .submit-bar {
+      flex: 0 0 auto;
+    }
+    .content {
+      flex: 1 1 auto;
+      min-height: 0;
+      height: auto;
+    }
+  
+/* codex fixed phone viewport height */
+    .phone {
+      height: 100vh;
+      max-height: 100vh;
+    }
+    @media (min-width: 720px) {
+      .phone {
+        height: calc(100vh - 40px);
+        max-height: calc(100vh - 40px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="phone" aria-label="新增跟进">
+    <div class="status">
+      <span>9:41</span>
+      <div class="signal">
+        <span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <span>5G</span>
+        <span class="battery" aria-hidden="true"><i></i></span>
+      </div>
+    </div>
+    <header class="titlebar">
+      <button class="back" id="backDetail" type="button" aria-label="返回">‹</button>
+      <h1>新增跟进</h1>
+      <span></span>
+    </header>
+    <div class="content">
+      <section class="panel">
+        <div class="customer">
+          <h2 id="customerName">李晓丽</h2>
+          <span class="tag" id="typeTag">电催</span>
+        </div>
+        <div class="seg" id="typeSeg">
+          <button data-type="电催" type="button">电催</button>
+          <button data-type="实地催收" type="button">实地催收</button>
+          <button data-type="收车" type="button">收车</button>
+          <button data-type="诉讼" type="button">诉讼</button>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="form" id="form"></div>
+      </section>
+    </div>
+    <div class="submit-bar">
+      <button class="submit" type="button">保存跟进记录</button>
+    </div>
+  </main>
+  <script>
+    const customers = {
+      lixiaoli: {
+        name: "李晓丽",
+        records: [
+          { type: "电催", user: "唐慧峰", time: "2026-05-28 18:20", text: "电话已接通，客户承诺本周五前补缴，已提醒逾期费用和还款路径。", meta: ["本人接听", "承诺还款", "需复催"] },
+          { type: "电催", user: "王玉清", time: "2026-05-27 10:06", text: "客户称资金周转中，暂未明确还款时间。", meta: ["电话接通", "继续观察"] }
+        ]
+      },
+      wangjianguo: {
+        name: "王建国",
+        records: [
+          { type: "实地催收", user: "唐慧峰", time: "2026-05-29 09:10", text: "已到店核实，车辆仍在客户经营场地，现场沟通后客户同意三日内先还一部分。", meta: ["车辆在场", "已拍门头", "承诺部分还款"] },
+          { type: "实地催收", user: "刘敏", time: "2026-05-29 08:35", text: "出发前核实车辆定位，GPS显示车辆仍在汤山门店附近，建议现场优先确认车况。", meta: ["GPS在线", "准备上门"] },
+          { type: "电催", user: "刘敏", time: "2026-05-28 16:40", text: "电话沟通未达成明确还款方案，客户表示需要和合伙人确认资金安排，建议升级实地催收。", meta: ["电话接通", "转实地"] }
+        ]
+      },
+      zhaoliu: {
+        name: "赵六",
+        records: [
+          { type: "收车", user: "陈立", time: "2026-05-27 16:42", text: "已定位车辆位置，收车小组待客户离场后执行拖车。", meta: ["GPS有效", "已派单", "等待执行"] }
+        ]
+      },
+      zhouna: {
+        name: "周娜",
+        records: [
+          { type: "诉讼", user: "宋佳", time: "2026-05-26 11:05", text: "诉讼资料已提交法务，等待立案反馈。", meta: ["资料齐全", "待立案"] }
+        ]
+      },
+      shenqiang: {
+        name: "沈强",
+        records: [
+          { type: "电催", user: "唐慧峰", time: "2026-05-28 14:35", text: "客户表示资金周转紧张，已约定下周一反馈具体还款计划。", meta: ["本人接听", "待反馈"] }
+        ]
+      },
+      chensiyuan: {
+        name: "陈思远",
+        records: [
+          { type: "实地催收", user: "刘敏", time: "2026-05-29 10:25", text: "已预约下午上门，准备核实车辆停放位置和客户经营情况。", meta: ["已预约", "待上门"] }
+        ]
+      }
+    };
+    const typeClass = { 电催: "", 实地催收: "visit", 收车: "car", 诉讼: "law" };
+    const params = new URLSearchParams(location.search);
+    const id = params.get("id") || "lixiaoli";
+    const recordIndex = params.get("record");
+    const readonly = recordIndex !== null;
+    const customer = customers[id] || customers.lixiaoli;
+    const viewRecord = readonly ? customer.records[Number(recordIndex)] || customer.records[0] : null;
+    let currentType = params.get("type") || "电催";
+    if (viewRecord) currentType = viewRecord.type;
+    const lockedType = currentType;
+    const form = document.querySelector("#form");
+    const typeTag = document.querySelector("#typeTag");
+
+    const templates = {
+      电催: `
+        <div class="hint">记录电话催收过程、客户态度、承诺还款安排以及下次跟进动作。</div>
+        <div class="section-label">联系信息</div>
+        <div class="two">
+          <div class="field"><label>拨打号码</label><input value="138****7621" /></div>
+          <div class="field"><label>联系结果</label><input value="本人接听" /></div>
+        </div>
+        <div class="two">
+          <div class="field"><label>通话时长</label><input value="03分28秒" /></div>
+          <div class="field"><label>客户态度</label><input value="愿意沟通" /></div>
+        </div>
+        <div class="field"><label>客户反馈</label><textarea>客户表示资金周转中，承诺本周五前补缴逾期款。</textarea></div>
+        <div class="field"><label>还款方案</label><textarea>建议客户优先结清本期逾期款，如无法一次性结清，需在承诺日期前先还一部分并同步付款凭证。</textarea></div>
+        <div class="field"><label>处理方式</label><div class="chips"><span class="chip">承诺还款</span><span class="chip">发送还款提醒</span><span class="chip">待复催</span></div></div>
+        <div class="two">
+          <div class="field"><label>承诺还款日期</label><input value="2026-05-31" /></div>
+          <div class="field"><label>下次跟进</label><input value="2026-06-01 10:00" /></div>
+        </div>
+      `,
+      实地催收: `
+        <div class="hint">记录上门情况、车辆核验、现场照片、联系情况以及下一步处置建议。</div>
+        <div class="section-label">车辆与位置</div>
+        <div class="two">
+          <div class="field"><label>车辆信息</label><input value="大众探岳 / LFV6277" /></div>
+          <div class="field"><label>定位状态</label><input value="GPS在线" /></div>
+        </div>
+        <div class="field"><label>实地位置</label><input value="南京市江宁区汤山街道门店附近" /></div>
+        <div class="two">
+          <div class="field"><label>车辆状态</label><input value="车辆在场，外观正常" /></div>
+          <div class="field"><label>现场对象</label><input value="经营人员" /></div>
+        </div>
+        <div class="field"><label>联系情况</label><textarea>现场见到客户经营人员，车辆仍在场地，客户本人电话接通但未到场。</textarea></div>
+        <div class="field"><label>现场结论</label><textarea>客户仍有经营活动，具备持续跟进价值；建议保持实地压力，同时要求客户明确部分还款时间。</textarea></div>
+        <div class="field"><label>实地照片</label>
+          <div class="photo-groups">
+            <div class="photo-group">
+              <div class="photo-title">门头照片</div>
+              <div class="upload-row photo-upload" data-photo-type="门头照片"><button class="upload add" type="button" aria-label="上传门头照片">＋ 上传</button></div>
+            </div>
+            <div class="photo-group">
+              <div class="photo-title">车辆照片</div>
+              <div class="upload-row photo-upload" data-photo-type="车辆照片"><button class="upload add" type="button" aria-label="上传车辆照片">＋ 上传</button></div>
+            </div>
+            <div class="photo-group">
+              <div class="photo-title">定位截图</div>
+              <div class="upload-row photo-upload" data-photo-type="定位截图"><button class="upload add" type="button" aria-label="上传定位截图">＋ 上传</button></div>
+            </div>
+          </div>
+        </div>
+        <div class="field"><label>处理方式</label><div class="chips"><span class="chip">现场催缴</span><span class="chip">核实车辆</span><span class="chip">预约再访</span></div></div>
+      `,
+      收车: `
+        <div class="hint">记录收车前核验、执行计划、现场证据和风险控制要求。</div>
+        <div class="section-label">执行信息</div>
+        <div class="two">
+          <div class="field"><label>收车方式</label><input value="拖车小组执行" /></div>
+          <div class="field"><label>车辆位置</label><input value="已定位" /></div>
+        </div>
+        <div class="two">
+          <div class="field"><label>执行人员</label><input value="陈立 / 收车小组" /></div>
+          <div class="field"><label>预计时间</label><input value="2026-05-29 20:30" /></div>
+        </div>
+        <div class="field"><label>执行计划</label><textarea>车辆疑似停放在客户经营场地后侧停车区，计划晚间客户离场后执行拖车。</textarea></div>
+        <div class="field"><label>风险提示</label><div class="chips"><span class="chip">需确认车况</span><span class="chip">保留现场证据</span><span class="chip">同步法务</span></div></div>
+        <div class="field"><label>现场材料</label><div class="upload-row"><button class="upload" type="button">车辆定位</button><button class="upload" type="button">现场照片</button><button class="upload" type="button">拖车单</button></div></div>
+      `,
+      诉讼: `
+        <div class="hint">记录诉讼阶段、证据材料、法务意见和下一步节点。</div>
+        <div class="section-label">案件信息</div>
+        <div class="two">
+          <div class="field"><label>案件阶段</label><input value="资料提交法务" /></div>
+          <div class="field"><label>法务对接人</label><input value="宋佳" /></div>
+        </div>
+        <div class="two">
+          <div class="field"><label>诉讼金额</label><input value="138,500 元" /></div>
+          <div class="field"><label>计划节点</label><input value="等待立案反馈" /></div>
+        </div>
+        <div class="field"><label>诉讼原因</label><textarea>客户长期逾期且拒绝沟通还款，已达到诉讼准入条件。</textarea></div>
+        <div class="field"><label>法务意见</label><textarea>建议补齐最近两次催收记录截图后提交立案材料，并同步保全车辆相关证据。</textarea></div>
+        <div class="field"><label>材料清单</label><div class="chips"><span class="chip">合同</span><span class="chip">逾期明细</span><span class="chip">催收记录</span><span class="chip">车辆资料</span></div></div>
+        <div class="field"><label>诉讼附件</label><div class="upload-row"><button class="upload" type="button">律师函</button><button class="upload" type="button">证据包</button><button class="upload" type="button">立案回执</button></div></div>
+      `
+    };
+
+    function readonlyTemplate(record) {
+      return `
+        <div class="hint">该页面为历史跟进记录详情，仅支持查看。</div>
+        <div class="two">
+          <div class="field"><label>跟进方式</label><input value="${record.type}" readonly /></div>
+          <div class="field"><label>跟进人</label><input value="${record.user}" readonly /></div>
+        </div>
+        <div class="field"><label>跟进时间</label><input value="${record.time}" readonly /></div>
+        <div class="field"><label>跟进内容</label><textarea readonly>${record.text}</textarea></div>
+        <div class="field"><label>处理标签</label><div class="chips">${record.meta.map((item) => `<span class="chip">${item}</span>`).join("")}</div></div>
+        <div class="field"><label>附件材料</label><div class="upload-row"><button class="upload" type="button">通话记录</button><button class="upload" type="button">现场照片</button><button class="upload" type="button">定位截图</button></div></div>
+      `;
+    }
+
+    function render() {
+      document.body.classList.toggle("readonly", readonly);
+      document.querySelector(".titlebar h1").textContent = readonly ? "跟进记录详情" : "新增跟进";
+      document.querySelector("#customerName").textContent = customer.name;
+      typeTag.textContent = currentType;
+      typeTag.className = `tag ${typeClass[currentType]}`;
+      document.querySelectorAll("#typeSeg button").forEach((button) => {
+        const isCurrent = button.dataset.type === lockedType;
+        button.classList.toggle("active", isCurrent);
+        button.disabled = !isCurrent;
+        button.setAttribute("aria-disabled", String(!isCurrent));
+      });
+      form.innerHTML = readonly ? readonlyTemplate(viewRecord) : templates[currentType];
+      document.querySelector(".submit-bar").style.display = readonly ? "none" : "block";
+      document.querySelector("#typeSeg").style.display = readonly ? "none" : "grid";
+    }
+
+    document.querySelector("#backDetail").addEventListener("click", () => {
+      window.location.href = `overdue-detail.html?id=${id}`;
+    });
+    document.querySelector("#typeSeg").addEventListener("click", (event) => {
+      if (readonly) return;
+      const button = event.target.closest("button");
+      if (!button || button.disabled) return;
+      currentType = button.dataset.type;
+      render();
+    });
+    form.addEventListener("click", (event) => {
+      const remove = event.target.closest(".remove");
+      if (remove) {
+        const item = remove.closest(".upload.filled");
+        const grid = item && item.closest(".photo-upload");
+        if (item) item.remove();
+        if (grid && !grid.querySelector(".upload.add")) addPhotoUpload(grid);
+        return;
+      }
+      const add = event.target.closest(".photo-upload .upload.add");
+      if (!add || readonly) return;
+      const grid = add.closest(".photo-upload");
+      const type = grid.dataset.photoType || "照片";
+      const count = grid.querySelectorAll(".upload.filled").length + 1;
+      const item = document.createElement("button");
+      item.className = "upload filled";
+      item.type = "button";
+      item.innerHTML = `${type}${count}<span class="remove">×</span>`;
+      grid.insertBefore(item, add);
+      grid.appendChild(add);
+    });
+
+    function addPhotoUpload(grid) {
+      const add = document.createElement("button");
+      add.className = "upload add";
+      add.type = "button";
+      add.textContent = "＋ 上传";
+      add.setAttribute("aria-label", `上传${grid.dataset.photoType || "照片"}`);
+      grid.appendChild(add);
+    }
+
+    render();
+  </script>
+</body>
+</html>

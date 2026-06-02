@@ -1,0 +1,775 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>首页</title>
+  <style>
+    :root {
+      --red: #ef4b59;
+      --ink: #1f2329;
+      --muted: #8b9099;
+      --bg: #f6f7f9;
+      --panel: #fff;
+      --line: #eef0f4;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #eef1f5;
+      color: var(--ink);
+      display: grid;
+      place-items: start center;
+    }
+
+    button {
+      border: 0;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .phone {
+      width: min(100vw, 390px);
+      min-height: 100vh;
+      background: var(--bg);
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, .04), 0 18px 48px rgba(30, 35, 45, .16);
+    }
+
+    .status {
+      display: none;
+      height: 26px;
+      padding: 6px 16px 0;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 800;
+      position: absolute;
+      z-index: 2;
+      left: 0;
+      right: 0;
+      top: 0;
+    }
+
+    .signal {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .bars {
+      display: inline-flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 12px;
+    }
+
+    .bars i {
+      display: block;
+      width: 3px;
+      border-radius: 2px;
+      background: #111;
+    }
+
+    .bars i:nth-child(1) { height: 4px; }
+    .bars i:nth-child(2) { height: 6px; }
+    .bars i:nth-child(3) { height: 9px; }
+    .bars i:nth-child(4) { height: 12px; }
+
+    .wifi {
+      width: 15px;
+      height: 11px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .wifi::before,
+    .wifi::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -7px;
+      border: 2px solid #111;
+      border-color: #111 transparent transparent transparent;
+      border-radius: 50%;
+      transform: translateX(-50%);
+    }
+
+    .wifi::before {
+      width: 24px;
+      height: 24px;
+    }
+
+    .wifi::after {
+      width: 14px;
+      height: 14px;
+      bottom: -4px;
+    }
+
+    .wifi i {
+      position: absolute;
+      left: 50%;
+      bottom: 0;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: #111;
+      transform: translateX(-50%);
+    }
+
+    .battery {
+      width: 22px;
+      height: 11px;
+      border: 1.5px solid #111;
+      border-radius: 2px;
+      position: relative;
+      padding: 1px;
+    }
+
+    .battery::after {
+      content: "";
+      position: absolute;
+      right: -4px;
+      top: 2px;
+      width: 2px;
+      height: 4px;
+      background: #111;
+    }
+
+    .battery i {
+      display: block;
+      width: 78%;
+      height: 100%;
+      border-radius: 1px;
+      background: #111;
+    }
+
+    .content {
+      height: calc(100vh - 64px);
+      overflow: auto;
+      padding-bottom: 22px;
+    }
+
+    .hero {
+      min-height: 181px;
+      aspect-ratio: 750 / 348;
+      padding: 0;
+      color: #fff;
+      background: url("assets/home-hero-truck.svg") center top / cover no-repeat;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "";
+      display: none;
+    }
+
+    .hero::before {
+      content: "";
+      display: none;
+    }
+
+    .company {
+      display: none;
+      margin: 0 0 12px;
+      font-size: 15px;
+      font-weight: 700;
+      position: relative;
+      z-index: 2;
+      text-shadow: 0 1px 8px rgba(156, 72, 61, .28);
+    }
+
+    .hello {
+      display: none;
+      margin: 0;
+      font-size: 22px;
+      font-weight: 800;
+      position: relative;
+      z-index: 2;
+      text-shadow: 0 2px 10px rgba(156, 72, 61, .3);
+    }
+
+    .menus {
+      margin-top: -10px;
+      padding: 13px 12px 10px;
+      background: #fff;
+      border-radius: 12px 12px 0 0;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 13px 4px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .menu {
+      min-width: 0;
+      display: grid;
+      justify-items: center;
+      gap: 6px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .menu-icon {
+      width: 44px;
+      height: 44px;
+      display: block;
+      overflow: visible;
+    }
+
+    .menu-icon .icon-bg {
+      fill: #fff1f3;
+    }
+
+    .menu-icon .icon-main {
+      fill: #20242b;
+    }
+
+    .menu-icon .icon-white {
+      fill: #fff;
+    }
+
+    .menu-icon .accent-fill {
+      fill: var(--red);
+    }
+
+    .dot {
+      width: 30px;
+      height: 4px;
+      margin: 10px auto 0;
+      border-radius: 5px;
+      background: linear-gradient(90deg, var(--red) 0 70%, #ffd4d8 70%);
+      grid-column: 1 / -1;
+    }
+
+    .message {
+      margin: 12px 16px;
+      padding: 13px 13px 14px;
+      background: #fff;
+    }
+
+    .message-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .message h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .message-head span {
+      color: var(--red);
+      font-size: 13px;
+    }
+
+    .msg {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      padding: 7px 0;
+      border-top: 1px solid var(--line);
+      font-size: 13px;
+    }
+
+    .msg:first-of-type {
+      border-top: 0;
+    }
+
+    .msg strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .msg p {
+      margin: 0;
+      color: #9ca1aa;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .overdue-panel {
+      margin: 12px 16px;
+      padding: 10px 12px;
+      background: #fff;
+      border-radius: 8px;
+    }
+
+    .overdue-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .overdue-head h2 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 900;
+    }
+
+    .overdue-head p {
+      margin: 2px 0 0;
+      color: #8b9099;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .overdue-head span {
+      flex: 0 0 auto;
+      height: 22px;
+      padding: 0 8px;
+      display: inline-flex;
+      align-items: center;
+      border-radius: 12px;
+      color: var(--red);
+      background: #fff0f2;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .overdue-list {
+      display: grid;
+      gap: 5px;
+    }
+
+    .overdue-item {
+      width: 100%;
+      padding: 7px 8px;
+      border-radius: 6px;
+      background: #fafbfc;
+      display: grid;
+      gap: 4px;
+      text-align: left;
+    }
+
+    .overdue-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .overdue-name {
+      font-size: 15px;
+      font-weight: 900;
+    }
+
+    .overdue-status {
+      flex: 0 0 auto;
+      height: 21px;
+      padding: 0 8px;
+      display: inline-flex;
+      align-items: center;
+      border-radius: 11px;
+      color: var(--red);
+      background: #fff0f2;
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .overdue-meta {
+      display: block;
+      color: #626a76;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .overdue-meta b,
+    .overdue-meta strong {
+      color: #20242b;
+      font-weight: 900;
+    }
+
+    .overdue-note {
+      display: none;
+      padding-top: 0;
+      border-top: 0;
+      color: #9b640d;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .workspace {
+      margin: 0 0 16px;
+      padding: 16px 16px 24px;
+      background: linear-gradient(180deg, #fff4eb, #fffaf5);
+      border-radius: 12px 12px 0 0;
+    }
+
+    .work-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      margin-bottom: 14px;
+      font-size: 17px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .work-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .work-title {
+      margin: 12px 0 8px;
+      font-weight: 800;
+    }
+
+    .work-card {
+      min-height: 52px;
+      padding: 8px;
+      background: #fff;
+      border-radius: 5px;
+      color: #747a84;
+      font-size: 13px;
+    }
+
+    .work-card b {
+      display: block;
+      margin-top: 3px;
+      color: #111;
+      font-size: 20px;
+    }
+
+    .bottom-nav {
+      height: 64px;
+      background: #fff;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      align-items: center;
+      border-top: 1px solid var(--line);
+    }
+
+    .nav-item {
+      display: grid;
+      justify-items: center;
+      gap: 4px;
+      font-size: 12px;
+      color: #222;
+    }
+
+    .nav-item.active {
+      color: var(--red);
+      font-weight: 700;
+    }
+
+    .nav-icon {
+      width: 26px;
+      height: 26px;
+      stroke: currentColor;
+      stroke-width: 2.15;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
+
+    .nav-icon .nav-accent {
+      stroke: var(--red);
+    }
+
+    @media (min-width: 720px) {
+      body {
+        padding: 20px;
+      }
+
+      .phone {
+        min-height: 780px;
+        height: calc(100vh - 40px);
+        border-radius: 26px;
+      }
+    }
+  /* codex viewport-fit fix */
+    .phone {
+      display: flex;
+      flex-direction: column;
+    }
+    .content {
+      flex: 1 1 auto;
+      min-height: 0;
+      height: auto;
+    }
+    .bottom-nav {
+      flex: 0 0 auto;
+    }
+  
+/* codex fixed phone viewport height */
+    .phone {
+      height: 100vh;
+      max-height: 100vh;
+    }
+    @media (min-width: 720px) {
+      .phone {
+        height: calc(100vh - 40px);
+        max-height: calc(100vh - 40px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="phone" aria-label="首页">
+    <div class="status">
+      <span>9:41</span>
+      <div class="signal">
+        <span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <span class="wifi" aria-hidden="true"><i></i></span>
+        <span class="battery" aria-hidden="true"><i></i></span>
+      </div>
+    </div>
+
+    <div class="content">
+      <section class="hero">
+        <p class="company">海南盛世吉元汽车贸易有限公司</p>
+        <h1 class="hello">董慧颖，你好!</h1>
+      </section>
+
+      <section class="menus" aria-label="功能菜单">
+        <button class="menu" type="button">
+          <svg class="menu-icon" viewBox="0 0 48 48" aria-hidden="true">
+            <circle class="icon-bg" cx="24" cy="24" r="20"></circle>
+            <path class="icon-main" transform="translate(10 9)" d="M14 14.252V22H4C4 17.5817 7.58172 14 12 14C12.6906 14 13.3608 14.0875 14 14.252ZM12 13C8.685 13 6 10.315 6 7C6 3.685 8.685 1 12 1C15.315 1 18 3.685 18 7C18 10.315 15.315 13 12 13ZM18 17V14H20V17H23V19H20V22H18V19H15V17H18Z"></path>
+            <circle class="accent-fill" cx="36" cy="35" r="7"></circle>
+            <path class="icon-white" d="M35.1 31.5h1.8v7h-1.8zM32.5 34.1h7v1.8h-7z"></path>
+          </svg>
+          <span>自然人进件</span>
+        </button>
+        <button class="menu" type="button">
+          <svg class="menu-icon" viewBox="0 0 48 48" aria-hidden="true">
+            <circle class="icon-bg" cx="24" cy="24" r="20"></circle>
+            <path class="icon-main" transform="translate(12 9)" d="M21 20H23V22H1V20H3V3C3 2.44772 3.44772 2 4 2H20C20.5523 2 21 2.44772 21 3V20ZM8 11V13H11V11H8ZM8 7V9H11V7H8ZM8 15V17H11V15H8ZM13 15V17H16V15H13ZM13 11V13H16V11H13ZM13 7V9H16V7H13Z"></path>
+            <circle class="accent-fill" cx="36" cy="35" r="7"></circle>
+            <path class="icon-white" d="M35.1 31.5h1.8v7h-1.8zM32.5 34.1h7v1.8h-7z"></path>
+          </svg>
+          <span>公户进件</span>
+        </button>
+        <button class="menu" type="button">
+          <svg class="menu-icon" viewBox="0 0 48 48" aria-hidden="true">
+            <circle class="icon-bg" cx="24" cy="24" r="20"></circle>
+            <path class="icon-main" transform="translate(11 11)" d="M19 20H5V21C5 21.5523 4.55228 22 4 22H3C2.44772 22 2 21.5523 2 21V12L4.51334 5.29775C4.80607 4.51715 5.55231 4 6.386 4H17.614C18.4477 4 19.1939 4.51715 19.4867 5.29775L22 12V21C22 21.5523 21.5523 22 21 22H20C19.4477 22 19 21.5523 19 21V20ZM4.136 12H19.864L17.614 6H6.386L4.136 12ZM6.5 17C7.32843 17 8 16.3284 8 15.5C8 14.6716 7.32843 14 6.5 14C5.67157 14 5 14.6716 5 15.5C5 16.3284 5.67157 17 6.5 17ZM17.5 17C18.3284 17 19 16.3284 19 15.5C19 14.6716 18.3284 14 17.5 14C16.6716 14 16 14.6716 16 15.5C16 16.3284 16.6716 17 17.5 17Z"></path>
+            <circle class="accent-fill" cx="36" cy="15" r="7"></circle>
+            <text x="36" y="18.5" fill="#fff" text-anchor="middle" font-size="9" font-weight="800">估</text>
+          </svg>
+          <span>车辆估价</span>
+        </button>
+        <button class="menu" type="button">
+          <svg class="menu-icon" viewBox="0 0 48 48" aria-hidden="true">
+            <circle class="icon-bg" cx="24" cy="24" r="20"></circle>
+            <path class="icon-main" transform="translate(12 9)" d="M12 10C14.2091 10 16 8.20914 16 6 16 3.79086 14.2091 2 12 2 9.79086 2 8 3.79086 8 6 8 8.20914 9.79086 10 12 10ZM5.5 13C6.88071 13 8 11.8807 8 10.5 8 9.11929 6.88071 8 5.5 8 4.11929 8 3 9.11929 3 10.5 3 11.8807 4.11929 13 5.5 13ZM21 10.5C21 11.8807 19.8807 13 18.5 13 17.1193 13 16 11.8807 16 10.5 16 9.11929 17.1193 8 18.5 8 19.8807 8 21 9.11929 21 10.5ZM12 11C14.7614 11 17 13.2386 17 16V22H7V16C7 13.2386 9.23858 11 12 11ZM5 15.9999C5 15.307 5.10067 14.6376 5.28818 14.0056L5.11864 14.0204C3.36503 14.2104 2 15.6958 2 17.4999V21.9999H5V15.9999ZM22 21.9999V17.4999C22 15.6378 20.5459 14.1153 18.7118 14.0056 18.8993 14.6376 19 15.307 19 15.9999V21.9999H22Z"></path>
+            <path class="accent-fill" d="M34 7l2 4 4 .6-3 2.8.7 4-3.7-2-3.7 2 .7-4-3-2.8 4-.6z"></path>
+          </svg>
+          <span>团队管理</span>
+        </button>
+        <button class="menu" id="dealerManage" type="button">
+          <svg class="menu-icon" viewBox="0 0 48 48" aria-hidden="true">
+            <circle class="icon-bg" cx="24" cy="24" r="20"></circle>
+            <path class="icon-main" transform="translate(12 10)" d="M22 20V22H2V20H3V13.2422C1.79401 12.435 1 11.0602 1 9.5C1 8.67286 1.22443 7.87621 1.63322 7.19746L4.3453 2.5C4.52393 2.1906 4.85406 2 5.21132 2H18.7887C19.1459 2 19.4761 2.1906 19.6547 2.5L22.3575 7.18172C22.7756 7.87621 23 8.67286 23 9.5C23 11.0602 22.206 12.435 21 13.2422V20H22ZM5.78865 4L3.35598 8.21321C3.12409 8.59843 3 9.0389 3 9.5C3 10.8807 4.11929 12 5.5 12C6.53096 12 7.44467 11.3703 7.82179 10.4295C8.1574 9.59223 9.3426 9.59223 9.67821 10.4295C10.0553 11.3703 10.969 12 12 12C13.031 12 13.9447 11.3703 14.3218 10.4295C14.6574 9.59223 15.8426 9.59223 16.1782 10.4295C16.5553 11.3703 17.469 12 18.5 12C19.8807 12 21 10.8807 21 9.5C21 9.0389 20.8759 8.59843 20.6347 8.19746L18.2113 4H5.78865Z"></path>
+            <rect class="accent-fill" x="19" y="31" width="10" height="6" rx="1.5"></rect>
+          </svg>
+          <span>车商管理</span>
+        </button>
+        <button class="menu" type="button">
+          <svg class="menu-icon" viewBox="0 0 48 48" aria-hidden="true">
+            <circle class="icon-bg" cx="24" cy="24" r="20"></circle>
+            <path class="icon-main" transform="translate(12 10)" d="M4 2H20C20.5523 2 21 2.44772 21 3V21C21 21.5523 20.5523 22 20 22H4C3.44772 22 3 21.5523 3 21V3C3 2.44772 3.44772 2 4 2ZM7 12V14H9V12H7ZM7 16V18H9V16H7ZM11 12V14H13V12H11ZM11 16V18H13V16H11ZM15 12V18H17V12H15ZM7 6V10H17V6H7Z"></path>
+            <circle class="accent-fill" cx="36" cy="36" r="7"></circle>
+            <text x="36" y="40" fill="#fff" text-anchor="middle" font-size="10" font-weight="800">￥</text>
+          </svg>
+          <span>融资计算器</span>
+        </button>
+        <button class="menu" type="button">
+          <svg class="menu-icon" viewBox="0 0 48 48" aria-hidden="true">
+            <circle class="icon-bg" cx="24" cy="24" r="20"></circle>
+            <path class="icon-main" transform="translate(11 13)" d="M19 20H5V21C5 21.5523 4.55228 22 4 22H3C2.44772 22 2 21.5523 2 21V12L4.51334 5.29775C4.80607 4.51715 5.55231 4 6.386 4H17.614C18.4477 4 19.1939 4.51715 19.4867 5.29775L22 12V21C22 21.5523 21.5523 22 21 22H20C19.4477 22 19 21.5523 19 21V20ZM4.136 12H19.864L17.614 6H6.386L4.136 12ZM6.5 17C7.32843 17 8 16.3284 8 15.5C8 14.6716 7.32843 14 6.5 14C5.67157 14 5 14.6716 5 15.5C5 16.3284 5.67157 17 6.5 17ZM17.5 17C18.3284 17 19 16.3284 19 15.5C19 14.6716 18.3284 14 17.5 14C16.6716 14 16 14.6716 16 15.5C16 16.3284 16.6716 17 17.5 17Z"></path>
+            <path class="accent-fill" transform="translate(16 3) scale(.78)" d="M12 4C9.4095 4 7.10606 5.23053 5.64274 7.14274L8 9.5H2V3.5L4.21863 5.71863C6.05061 3.452 8.85558 2 12 2 17.5228 2 22 6.47715 22 12H20C20 7.58172 16.4183 4 12 4ZM4 12C4 16.4183 7.58172 20 12 20 14.5905 20 16.894 18.7695 18.3573 16.8573L16 14.5 22 14.5V20.5L19.7814 18.2814C17.9494 20.548 15.1444 22 12 22 6.47715 22 2 17.5228 2 12H4Z"></path>
+          </svg>
+          <span>车型同步</span>
+        </button>
+        <button class="menu" id="overdueManage" type="button">
+          <svg class="menu-icon" viewBox="0 0 48 48" aria-hidden="true">
+            <circle class="icon-bg" cx="24" cy="24" r="20"></circle>
+            <path class="icon-main" transform="translate(12 10)" d="M4.00001 20V14C4.00001 9.58172 7.58173 6 12 6C16.4183 6 20 9.58172 20 14V20H21V22H3.00001V20H4.00001ZM6.00001 14H8.00001C8.00001 11.7909 9.79087 10 12 10V8C8.6863 8 6.00001 10.6863 6.00001 14ZM11 2H13V5H11V2ZM19.7782 4.80761L21.1924 6.22183L19.0711 8.34315L17.6569 6.92893L19.7782 4.80761ZM2.80762 6.22183L4.22183 4.80761L6.34315 6.92893L4.92894 8.34315L2.80762 6.22183Z"></path>
+            <circle class="accent-fill" cx="35" cy="35" r="7"></circle>
+            <path class="icon-white" d="M34 31h2v6h-2zM34 38.2h2v2h-2z"></path>
+          </svg>
+          <span>逾期管理</span>
+        </button>
+        <button class="menu" type="button">
+          <svg class="menu-icon" viewBox="0 0 48 48" aria-hidden="true">
+            <circle class="icon-bg" cx="24" cy="24" r="20"></circle>
+            <path class="icon-main" transform="translate(12 10)" d="M12 1L20.2169 2.82598C20.6745 2.92766 21 3.33347 21 3.80217V13.7889C21 15.795 19.9974 17.6684 18.3282 18.7812L12 23L5.6718 18.7812C4.00261 17.6684 3 15.795 3 13.7889V3.80217C3 3.33347 3.32553 2.92766 3.78307 2.82598L12 1ZM16.4524 8.22183L11.5019 13.1709L8.67421 10.3431L7.25999 11.7574L11.5026 16L17.8666 9.63604L16.4524 8.22183Z"></path>
+            <circle class="accent-fill" cx="36" cy="34" r="7"></circle>
+            <path class="icon-white" d="M35.1 30.5h1.8v7h-1.8zM32.5 33.1h7v1.8h-7z"></path>
+          </svg>
+          <span>风险核查</span>
+        </button>
+        <button class="menu" type="button">
+          <svg class="menu-icon" viewBox="0 0 48 48" aria-hidden="true">
+            <circle class="icon-bg" cx="24" cy="24" r="20"></circle>
+            <path class="icon-main" transform="translate(12 8)" d="M18.364 17.364L12 23.7279L5.63604 17.364C2.12132 13.8492 2.12132 8.15076 5.63604 4.63604C9.15076 1.12132 14.8492 1.12132 18.364 4.63604C21.8787 8.15076 21.8787 13.8492 18.364 17.364ZM12 13C13.1046 13 14 12.1046 14 11C14 9.89543 13.1046 9 12 9C10.8954 9 10 9.89543 10 11C10 12.1046 10.8954 13 12 13Z"></path>
+            <circle class="accent-fill" cx="24" cy="19" r="4"></circle>
+          </svg>
+          <span>GPS管理</span>
+        </button>
+        <span class="dot"></span>
+      </section>
+
+      <section class="message">
+        <div class="message-head">
+          <h2>消息中心</h2>
+          <span>你有2条风险类消息，请关注!</span>
+        </div>
+        <div class="msg"><div><strong>风险上报提醒</strong><p>风险上报详情文字风险上报详情文字...</p></div><span>30分钟前</span></div>
+        <div class="msg"><div><strong>风险上报提醒</strong><p>风险上报详情文字风险上报详情文字...</p></div><span>30分钟前</span></div>
+      </section>
+
+      <section class="overdue-panel">
+        <div class="overdue-head">
+          <div>
+            <h2>待跟进逾期客户</h2>
+            <p>为你找到近期未被跟进的客户</p>
+          </div>
+          <span>3人</span>
+        </div>
+        <div class="overdue-list">
+          <button class="overdue-item" data-id="zhaoliu" type="button">
+            <div class="overdue-row">
+              <strong class="overdue-name">赵六</strong>
+              <span class="overdue-status">收车</span>
+            </div>
+            <div class="overdue-meta">
+              逾期 <b>64天</b> · 金额 <b>94,800</b> · 未跟进 <strong>2天</strong> · 确认收车进展
+            </div>
+          </button>
+          <button class="overdue-item" data-id="zhouna" type="button">
+            <div class="overdue-row">
+              <strong class="overdue-name">周娜</strong>
+              <span class="overdue-status">诉讼</span>
+            </div>
+            <div class="overdue-meta">
+              逾期 <b>96天</b> · 金额 <b>138,500</b> · 未跟进 <strong>3天</strong> · 补充法务反馈
+            </div>
+          </button>
+          <button class="overdue-item" data-id="lixiaoli" type="button">
+            <div class="overdue-row">
+              <strong class="overdue-name">李晓丽</strong>
+              <span class="overdue-status">电催</span>
+            </div>
+            <div class="overdue-meta">
+              逾期 <b>12天</b> · 金额 <b>18,600</b> · 未跟进 <strong>1天</strong> · 核实承诺还款
+            </div>
+          </button>
+        </div>
+      </section>
+
+      <section class="workspace">
+        <div class="work-tabs"><span>团队工作台</span><span>数据速递</span></div>
+        <div class="work-title">预审</div>
+        <div class="work-grid">
+          <div class="work-card">待预审<b>8</b></div>
+          <div class="work-card">结果查询中<b>65</b></div>
+          <div class="work-card">预审不通过<b>32</b></div>
+        </div>
+        <div class="work-title">提报</div>
+        <div class="work-grid">
+          <div class="work-card">待提报<b>8</b></div>
+          <div class="work-card">审核中<b>2</b></div>
+          <div class="work-card">提报驳回<b>7</b></div>
+        </div>
+        <div class="work-title">签约</div>
+        <div class="work-grid">
+          <div class="work-card">合同待生成<b>8</b></div>
+          <div class="work-card">合同生成中<b>2</b></div>
+          <div class="work-card">合同待签署<b>7</b></div>
+        </div>
+        <div class="work-title">请款</div>
+        <div class="work-grid">
+          <div class="work-card">待请款<b>8</b></div>
+          <div class="work-card">请款审核中<b>2</b></div>
+          <div class="work-card">请款驳回<b>7</b></div>
+        </div>
+      </section>
+    </div>
+
+    <nav class="bottom-nav" aria-label="底部导航">
+      <span class="nav-item active">
+        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3.5 11.5 12 4l8.5 7.5"></path>
+          <path d="M5.5 10.5V21h13V10.5"></path>
+          <path d="M9 21v-6h6v6"></path>
+        </svg>
+        <span>首页</span>
+      </span>
+      <span class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="4" y="5" width="16" height="16" rx="3"></rect>
+          <path d="M8 16.5v-3M12 16.5V10M16 16.5v-5"></path>
+          <path class="nav-accent" d="M7.5 20h9"></path>
+        </svg>
+        <span>数据</span>
+      </span>
+      <button class="nav-item" id="orderNav" type="button">
+        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M7 3.5h7l4 4V21H7z"></path>
+          <path d="M14 3.5v5h5"></path>
+          <path d="M10 13h6M10 17h4"></path>
+          <path class="nav-accent" d="M9.5 7.5h2.5"></path>
+        </svg>
+        <span>订单</span>
+      </button>
+      <span class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M9 4.5h6l1.2 3H20v12.5H4V7.5h3.8z"></path>
+          <path d="M8.5 14l2.5 2.5 5-5"></path>
+          <path class="nav-accent" d="M9 4.5h6"></path>
+        </svg>
+        <span>审批</span>
+      </span>
+      <span class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="8" r="3.6"></circle>
+          <path d="M4.5 21c1.2-5.2 13.8-5.2 15 0"></path>
+          <path class="nav-accent" d="M16.5 6.5h3M18 5v3"></path>
+        </svg>
+        <span>我的</span>
+      </span>
+    </nav>
+  </main>
+
+  <script>
+    document.querySelector("#dealerManage").addEventListener("click", () => {
+      window.location.href = "list.html";
+    });
+    document.querySelector("#orderNav").addEventListener("click", () => {
+      window.location.href = "order.html";
+    });
+    document.querySelector("#overdueManage").addEventListener("click", () => {
+      window.location.href = "overdue.html";
+    });
+    document.querySelectorAll(".overdue-item").forEach((item) => {
+      item.addEventListener("click", () => {
+        window.location.href = `overdue-detail.html?id=${item.dataset.id}`;
+      });
+    });
+  </script>
+</body>
+</html>
+

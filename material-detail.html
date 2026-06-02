@@ -1,0 +1,1311 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>材料清单详情</title>
+  <style>
+    :root {
+      --red: #ef4b59;
+      --red-soft: #fff0f2;
+      --green: #19a66a;
+      --green-soft: #edf9f3;
+      --orange: #ff8a00;
+      --orange-soft: #fff7ea;
+      --ink: #1f2329;
+      --muted: #777e89;
+      --bg: #f6f7f9;
+      --panel: #fff;
+      --line: #eef0f4;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #eef1f5;
+      color: var(--ink);
+      display: grid;
+      place-items: start center;
+    }
+    button { border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+    .phone {
+      width: min(100vw, 390px);
+      min-height: 100vh;
+      background: var(--bg);
+      overflow: hidden;
+      box-shadow: 0 0 0 1px rgba(0,0,0,.04), 0 18px 48px rgba(30,35,45,.16);
+    }
+    .status {
+      height: 26px;
+      padding: 6px 16px 0;
+      background: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .signal { display: flex; align-items: center; gap: 6px; }
+    .bars { display: inline-flex; align-items: flex-end; gap: 2px; height: 12px; }
+    .bars i { width: 3px; border-radius: 2px; background: #111; }
+    .bars i:nth-child(1){height:4px}.bars i:nth-child(2){height:6px}.bars i:nth-child(3){height:9px}.bars i:nth-child(4){height:12px}
+    .battery { width:22px; height:11px; border:1.5px solid #111; border-radius:2px; position:relative; padding:1px; }
+    .battery::after { content:""; position:absolute; right:-4px; top:2px; width:2px; height:4px; background:#111; }
+    .battery i { display:block; width:78%; height:100%; background:#111; border-radius:1px; }
+    .titlebar {
+      height: 46px;
+      background: #fff;
+      display: grid;
+      grid-template-columns: 42px 1fr 42px;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+    }
+    .back { font-size: 28px; line-height: 1; }
+    .titlebar h1 { margin: 0; text-align: center; font-size: 17px; }
+    .content {
+      height: calc(100vh - 26px - 46px);
+      overflow: auto;
+      padding-bottom: 18px;
+      scrollbar-width: none;
+    }
+    .content::-webkit-scrollbar { display: none; }
+    .section {
+      margin-top: 10px;
+      padding: 16px 12px 4px;
+      background: #fff;
+    }
+    .global-ai-tip {
+      width: 100%;
+      margin: 0;
+      padding: 10px 12px;
+      background: #fff;
+      color: #3d7df7;
+      border-bottom: 1px solid #eef0f4;
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1.3;
+      white-space: nowrap;
+    }
+    .global-ai-tip.fail {
+      color: #ff8a00;
+      background: #fff7ea;
+    }
+    .global-ai-tip.pass {
+      color: #19a66a;
+      background: #f2fbf6;
+    }
+    .section:first-child { margin-top: 0; }
+    .section-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 13px;
+    }
+    .section h2 {
+      margin: 0;
+      font-size: 17px;
+      flex: 1;
+    }
+    .toggle-all {
+      padding: 4px 10px;
+      border-radius: 14px;
+      background: #f3f6fb;
+      color: #5f6671;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .material-card {
+      margin-top: 12px;
+      padding: 12px 10px 14px;
+      border: 1px solid #eef0f4;
+      border-radius: 6px;
+      background: #fbfcfe;
+    }
+    .material-card:first-of-type {
+      margin-top: 0;
+    }
+    .material-head {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 9px;
+      cursor: pointer;
+    }
+    .material-card.collapsed .material-head {
+      margin-bottom: 0;
+    }
+    .material-title {
+      min-width: 0;
+      font-size: 14px;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+    .material-count {
+      color: #8b929d;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .fail-badge {
+      padding: 3px 7px;
+      border-radius: 12px;
+      background: #fff0f2;
+      color: var(--red);
+      border: 1px solid #ffd4d9;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .collapse-arrow {
+      width: 18px;
+      height: 18px;
+      color: #a0a7b2;
+      position: relative;
+      flex: 0 0 auto;
+    }
+    .collapse-arrow::before {
+      content: "";
+      position: absolute;
+      left: 5px;
+      top: 4px;
+      width: 7px;
+      height: 7px;
+      border-right: 1.8px solid currentColor;
+      border-bottom: 1.8px solid currentColor;
+      transform: rotate(45deg);
+    }
+    .material-card.collapsed .collapse-arrow::before {
+      top: 6px;
+      transform: rotate(-45deg);
+    }
+    .material-body {
+      display: block;
+    }
+    .material-card.collapsed .material-body {
+      display: none;
+    }
+    .delete-material {
+      margin-left: auto;
+      padding: 3px 8px;
+      border-radius: 12px;
+      background: #f3f4f6;
+      color: #8b929d;
+      font-size: 12px;
+    }
+    .ai-mark {
+      flex: 0 0 auto;
+      margin-left: auto;
+      padding: 3px 7px;
+      border-radius: 12px;
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, .8);
+      background: linear-gradient(135deg, #7c5cff, #35c2ff 52%, #ef4b59);
+      box-shadow: 0 3px 8px rgba(80, 110, 255, .22);
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .vin-block {
+      margin-top: 10px;
+      padding: 0;
+      border-radius: 0;
+      background: transparent;
+    }
+    .vin-block + .vin-block {
+      padding-top: 10px;
+      border-top: 1px dashed #e2e6ee;
+    }
+    .vin {
+      margin-bottom: 8px;
+      color: #555d69;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .attachment-list {
+      display: grid;
+      gap: 8px;
+    }
+    .attachment-wrap {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0;
+      width: 100%;
+    }
+    .attachment {
+      width: 100%;
+      min-height: 58px;
+      border-radius: 4px;
+      border: 1px solid #edf0f4;
+      background: #fff;
+      color: #5f6671;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-align: left;
+      padding: 8px 40px 8px 9px;
+      font-size: 13px;
+      line-height: 1.35;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(31, 35, 41, .04);
+    }
+    .attachment.has-review {
+      align-items: flex-start;
+      padding-bottom: 10px;
+    }
+    .attachment.add {
+      width: 100%;
+      min-height: 46px;
+      justify-content: center;
+      gap: 5px;
+      border: 1px dashed #ef4b59;
+      background: #fff7f8;
+      color: var(--red);
+      font-size: 15px;
+      font-weight: 800;
+      box-shadow: none;
+    }
+    .attachment.add.registration-slot {
+      min-height: 72px;
+      justify-content: flex-start;
+      border-color: #ffc5cc;
+      background: linear-gradient(180deg, #fff, #fff8f9);
+      color: #2d333b;
+      font-size: 13px;
+    }
+    .attachment.add .upload-chip {
+      display: inline-grid;
+      place-items: center;
+      height: 26px;
+      min-width: 68px;
+      margin: 0 0 0 auto;
+      padding: 0 10px;
+      border-radius: 14px;
+      background: var(--red);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .attachment.add > .upload-text {
+      color: var(--red);
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .attachment.pass {
+      border-color: #edf0f4;
+      background: #fff;
+      color: #5f6671;
+      font-weight: 500;
+    }
+    .attachment.checking {
+      border-color: #b9d8ff;
+      background: linear-gradient(135deg, #f8fbff, #edf5ff);
+      color: #2878ff;
+      font-weight: 700;
+    }
+    .attachment.checking::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(110deg, transparent 0 30%, rgba(40, 120, 255, .18) 45%, transparent 60% 100%);
+      animation: scan 1.1s linear infinite;
+    }
+    .attachment.fail {
+      border-color: #edf0f4;
+      background: #fff;
+      color: #5f6671;
+      font-weight: 500;
+    }
+    .file-icon {
+      position: relative;
+      z-index: 1;
+      width: 26px;
+      height: 30px;
+      flex: 0 0 auto;
+      border-radius: 5px;
+      background: linear-gradient(180deg, #fff, #f1f4f8);
+      border: 1px solid #dfe4ec;
+      color: #ef4b59;
+      display: grid;
+      place-items: center;
+      font-size: 10px;
+      font-weight: 900;
+    }
+    .file-thumb {
+      position: relative;
+      z-index: 1;
+      width: 42px;
+      height: 52px;
+      flex: 0 0 auto;
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid #dfe4ec;
+      background: #fff;
+      display: grid;
+      place-items: center;
+    }
+    .file-thumb.uploaded {
+      background:
+        linear-gradient(145deg, rgba(255,255,255,.42), rgba(255,255,255,0) 38%),
+        linear-gradient(135deg, #ffe5e8 0 28%, #f8fafc 28% 100%);
+    }
+    .file-thumb.uploaded::before {
+      content: "";
+      width: 28px;
+      height: 34px;
+      border-radius: 3px;
+      background:
+        linear-gradient(#ef4b59, #ef4b59) 5px 8px/18px 2px no-repeat,
+        linear-gradient(#c8d0da, #c8d0da) 5px 15px/20px 2px no-repeat,
+        linear-gradient(#c8d0da, #c8d0da) 5px 22px/15px 2px no-repeat,
+        #fff;
+      box-shadow: 0 0 0 1px #d9e0e9;
+    }
+    .file-thumb.thumb-receipt {
+      background:
+        linear-gradient(160deg, rgba(255,255,255,.45), rgba(255,255,255,0) 38%),
+        linear-gradient(180deg, #fef6ef, #fff 48%, #f6f8fb);
+    }
+    .file-thumb.thumb-receipt::before {
+      width: 31px;
+      height: 37px;
+      background:
+        linear-gradient(#ef4b59, #ef4b59) 5px 7px/20px 2px no-repeat,
+        linear-gradient(#1f2329, #1f2329) 5px 14px/12px 2px no-repeat,
+        linear-gradient(#c5ccd7, #c5ccd7) 5px 20px/22px 2px no-repeat,
+        linear-gradient(#c5ccd7, #c5ccd7) 5px 26px/18px 2px no-repeat,
+        linear-gradient(90deg, transparent 0 70%, rgba(239,75,89,.12) 70% 100%),
+        #fff;
+    }
+    .file-thumb.thumb-register {
+      background:
+        linear-gradient(160deg, rgba(255,255,255,.42), rgba(255,255,255,0) 35%),
+        linear-gradient(180deg, #eaf2ff, #f8fbff);
+    }
+    .file-thumb.thumb-register::before {
+      width: 32px;
+      height: 38px;
+      background:
+        linear-gradient(#2f6fed, #2f6fed) 0 0/100% 8px no-repeat,
+        linear-gradient(#d0dae8, #d0dae8) 5px 14px/22px 2px no-repeat,
+        linear-gradient(#d0dae8, #d0dae8) 5px 20px/18px 2px no-repeat,
+        linear-gradient(#d0dae8, #d0dae8) 5px 26px/24px 2px no-repeat,
+        linear-gradient(90deg, #f5f8fc 0 48%, #fff 48% 100%);
+    }
+    .file-thumb.thumb-invoice {
+      background:
+        linear-gradient(160deg, rgba(255,255,255,.45), rgba(255,255,255,0) 36%),
+        linear-gradient(180deg, #fff7e9, #fff);
+    }
+    .file-thumb.thumb-invoice::before {
+      width: 32px;
+      height: 38px;
+      background:
+        linear-gradient(#ff8a00, #ff8a00) 5px 6px/16px 2px no-repeat,
+        linear-gradient(#ff8a00, #ff8a00) 5px 12px/22px 2px no-repeat,
+        linear-gradient(#d4dbe5, #d4dbe5) 5px 20px/22px 2px no-repeat,
+        linear-gradient(#d4dbe5, #d4dbe5) 5px 26px/18px 2px no-repeat,
+        radial-gradient(circle at 25px 31px, rgba(239,75,89,.22) 0 6px, transparent 6px),
+        #fff;
+    }
+    .file-thumb.thumb-photo {
+      background:
+        linear-gradient(160deg, rgba(255,255,255,.36), rgba(255,255,255,0) 38%),
+        linear-gradient(135deg, #d8ecff, #f5fbff 48%, #fff1f3);
+    }
+    .file-thumb.thumb-photo::before {
+      width: 32px;
+      height: 38px;
+      background:
+        radial-gradient(circle at 23px 9px, #ffd166 0 4px, transparent 4px),
+        linear-gradient(135deg, transparent 0 52%, #76b7ff 52% 100%),
+        linear-gradient(45deg, #56a668 0 36%, transparent 36% 100%),
+        #eaf6ff;
+    }
+    .file-thumb.thumb-contract {
+      background:
+        linear-gradient(160deg, rgba(255,255,255,.42), rgba(255,255,255,0) 35%),
+        linear-gradient(180deg, #f6f1ff, #fff);
+    }
+    .file-thumb.thumb-contract::before {
+      width: 32px;
+      height: 38px;
+      background:
+        linear-gradient(#7b3cff, #7b3cff) 5px 7px/20px 2px no-repeat,
+        linear-gradient(#ccd3df, #ccd3df) 5px 15px/22px 2px no-repeat,
+        linear-gradient(#ccd3df, #ccd3df) 5px 21px/22px 2px no-repeat,
+        linear-gradient(#ccd3df, #ccd3df) 5px 27px/16px 2px no-repeat,
+        radial-gradient(circle at 24px 31px, rgba(123,60,255,.18) 0 6px, transparent 6px),
+        #fff;
+    }
+    .sample-license {
+      border-style: dashed;
+      border-color: #ffb9c2;
+      background:
+        linear-gradient(135deg, rgba(239,75,89,.05), rgba(255,255,255,.92)),
+        repeating-linear-gradient(0deg, #fff 0 8px, #f5f7fa 8px 10px);
+      opacity: .82;
+    }
+    .sample-license::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 2;
+      width: 24px;
+      height: 18px;
+      border-radius: 5px;
+      background: rgba(255, 255, 255, .72);
+      border: 2px solid rgba(255, 255, 255, .92);
+      box-shadow:
+        0 -5px 0 -2px rgba(255,255,255,.92),
+        0 2px 8px rgba(31,35,41,.10);
+      transform: translate(-50%, -50%);
+    }
+    .sample-license .sample-label {
+      position: absolute;
+      left: 3px;
+      top: 3px;
+      z-index: 3;
+      padding: 1px 3px;
+      border-radius: 3px;
+      background: #fff0f2;
+      color: #ef4b59;
+      font-size: 9px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+    .sample-license .camera-lens {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 3;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      border: 2px solid rgba(239, 75, 89, .35);
+      background: rgba(255,255,255,.8);
+      transform: translate(-50%, -38%);
+    }
+    .sample-license::before {
+      content: "";
+      width: 28px;
+      height: 36px;
+      border-radius: 3px;
+      background:
+        linear-gradient(#ffb9c2, #ffb9c2) 5px 8px/18px 2px no-repeat,
+        linear-gradient(#d5dbe4, #d5dbe4) 5px 15px/18px 2px no-repeat,
+        linear-gradient(#d5dbe4, #d5dbe4) 5px 22px/14px 2px no-repeat,
+        linear-gradient(#e6eaf0, #e6eaf0) 5px 29px/18px 2px no-repeat,
+        #fff;
+      box-shadow: 0 0 0 1px #e2e7ef;
+    }
+    .file-main {
+      position: relative;
+      z-index: 1;
+      min-width: 0;
+      flex: 1;
+    }
+    .attachment-name {
+      display: block;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #2d333b;
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .attachment-meta {
+      display: block;
+      margin-top: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #8b929d;
+      font-size: 10px;
+      font-weight: 500;
+    }
+    .review-inline {
+      margin-top: 8px;
+      padding: 7px 8px;
+      border-radius: 5px;
+      background: #fff;
+      border: 1px solid #ffdca8;
+      color: #ff8a00;
+      font-size: 11px;
+      font-weight: 500;
+      line-height: 1.45;
+      white-space: normal;
+      word-break: break-word;
+    }
+    .review-inline strong {
+      display: block;
+      margin-bottom: 4px;
+      font-weight: 800;
+    }
+    .review-inline p {
+      margin: 2px 0 0;
+    }
+    .review-inline.global-review {
+      border-color: #ffdca8;
+      background: #fffaf2;
+      color: #ff8a00;
+    }
+    .delete-attachment {
+      position: absolute;
+      right: -2px;
+      top: -2px;
+      z-index: 2;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      color: #fff;
+      background: #ef4b59;
+      border: 2px solid #fff;
+      box-shadow: 0 2px 8px rgba(239, 75, 89, .24);
+      font-size: 0;
+      transition: background .15s ease, transform .15s ease, box-shadow .15s ease;
+    }
+    .delete-attachment::before {
+      content: "";
+      position: absolute;
+      left: 4px;
+      top: 6px;
+      width: 6px;
+      height: 2px;
+      border-radius: 2px;
+      background: currentColor;
+    }
+    .delete-attachment:active {
+      background: #d93f4c;
+      transform: scale(.92);
+      box-shadow: 0 1px 4px rgba(239, 75, 89, .22);
+    }
+    .checking-label {
+      position: relative;
+      z-index: 2;
+      padding: 3px 8px;
+      border-radius: 9px;
+      background: rgba(255,255,255,.86);
+      color: #2878ff;
+      font-size: 10px;
+      font-weight: 700;
+    }
+    .review-panel {
+      margin-top: 6px;
+      padding: 8px 10px;
+      border-radius: 5px;
+      border: 1px solid #ffd4d9;
+      background: #fff8f9;
+      color: var(--red);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+    .review-panel strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+    .review-panel p {
+      margin: 2px 0 0;
+      white-space: normal;
+      word-break: break-word;
+    }
+    .review-panel.empty {
+      display: none;
+    }
+    @keyframes scan {
+      from { transform: translateX(-100%); }
+      to { transform: translateX(100%); }
+    }
+    .add-box {
+      height: 36px;
+      min-width: 120px;
+      margin: 10px auto 18px;
+      padding: 0 14px;
+      display: grid;
+      place-items: center;
+      border: 1px solid #e5e8ee;
+      border-radius: 18px;
+      color: #8b929d;
+      background: #f8f9fb;
+      font-size: 13px;
+      font-weight: 600;
+      width: max-content;
+    }
+    .readonly .attachment.add,
+    .readonly .upload-chip,
+    .readonly .delete-attachment,
+    .readonly .switch-type,
+    .readonly .delete-material,
+    .readonly .add-box {
+      display: none;
+    }
+    .switch-type {
+      padding: 3px 9px;
+      border-radius: 12px;
+      border: 1px solid #ffd4d9;
+      background: #fff7f8;
+      color: var(--red);
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .sheet-mask {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: none;
+      align-items: end;
+      justify-content: center;
+      background: rgba(31,35,41,.38);
+    }
+    .sheet-mask.show { display: flex; }
+    .sheet {
+      width: min(100vw, 390px);
+      padding: 14px 16px 22px;
+      border-radius: 16px 16px 0 0;
+      background: #fff;
+      box-shadow: 0 -8px 28px rgba(31,35,41,.16);
+    }
+    .sheet-title {
+      margin: 0 0 12px;
+      text-align: center;
+      color: #1f2329;
+      font-size: 16px;
+      font-weight: 900;
+    }
+    .sheet-option {
+      width: 100%;
+      height: 46px;
+      margin-top: 8px;
+      border-radius: 6px;
+      background: #f7f8fa;
+      color: #1f2329;
+      font-size: 15px;
+      font-weight: 800;
+    }
+    .sheet-cancel {
+      width: 100%;
+      height: 44px;
+      margin-top: 12px;
+      border-radius: 22px;
+      color: #8b929d;
+      background: #f5f6f8;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .confirm-box {
+      width: min(320px, calc(100vw - 48px));
+      align-self: center;
+      padding: 18px 16px 14px;
+      border-radius: 10px;
+      background: #fff;
+      box-shadow: 0 10px 32px rgba(31,35,41,.2);
+    }
+    .confirm-title {
+      margin: 0 0 8px;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 900;
+    }
+    .confirm-text {
+      margin: 0 0 16px;
+      color: #555d69;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .confirm-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .confirm-actions button {
+      height: 38px;
+      border-radius: 20px;
+      font-weight: 800;
+    }
+    .confirm-cancel {
+      background: #f5f6f8;
+      color: #777e89;
+    }
+    .confirm-ok {
+      background: var(--red);
+      color: #fff;
+    }
+  /* codex viewport-fit fix */
+    .phone {
+      display: flex;
+      flex-direction: column;
+    }
+    .status,
+    .header {
+      flex: 0 0 auto;
+    }
+    .content {
+      flex: 1 1 auto;
+      min-height: 0;
+      height: auto;
+    }
+  
+/* codex fixed phone viewport height */
+    .phone {
+      height: 100vh;
+      max-height: 100vh;
+    }
+    @media (min-width: 720px) {
+      .phone {
+        height: calc(100vh - 40px);
+        max-height: calc(100vh - 40px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="phone" aria-label="材料清单详情">
+    <div class="status">
+      <span>9:41</span>
+      <div class="signal">
+        <span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <span class="battery" aria-hidden="true"><i></i></span>
+      </div>
+    </div>
+    <header class="titlebar">
+      <button class="back" id="backOrder" type="button" aria-label="返回">‹</button>
+      <h1>材料清单详情</h1>
+      <span></span>
+    </header>
+    <div class="content" id="content"></div>
+  </main>
+  <div class="sheet-mask" id="typeSheet" aria-hidden="true">
+    <div class="sheet">
+      <p class="sheet-title">选择材料类型</p>
+      <button class="sheet-option" type="button" data-type="合格证">合格证</button>
+      <button class="sheet-option" type="button" data-type="订单截图">订单截图</button>
+      <button class="sheet-cancel" type="button">取消</button>
+    </div>
+  </div>
+  <div class="sheet-mask" id="confirmSheet" aria-hidden="true">
+    <div class="confirm-box">
+      <p class="confirm-title">切换材料类型</p>
+      <p class="confirm-text">当前材料已经上传附件，切换为新的材料类型将会清空原附件。</p>
+      <div class="confirm-actions">
+        <button class="confirm-cancel" type="button">取消</button>
+        <button class="confirm-ok" type="button">确定</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    const vehicleTemplates = [
+      { vin: "车架号：LSV2B8CA8PN123456" },
+      { vin: "车架号：LSV2B8CA8PN654321" }
+    ];
+    const registerPages = ["登记证1、2页", "登记证3、4页", "登记证5、6页", "登记证7、8页", "登记证尾页"];
+    const vehicleMaterial = (vehicles) => ({ vehicle: true, vehicles });
+    const file = (name, status = "pass", options = {}) => ({
+      name,
+      status,
+      type: options.type || "图片",
+      time: options.time || "2026-05-27 09:41",
+      reasons: options.reasons || []
+    });
+    const defaultGroups = [
+      {
+        title: "承租个人-张文波",
+        materials: [
+          { title: "首付款凭证", ai: true, ...vehicleMaterial([
+            { ...vehicleTemplates[0], attachments: [file("首付款凭证1", "pass", { type: "PDF" })] },
+            { ...vehicleTemplates[1], attachments: [] }
+          ]) },
+          { title: "合格证或订单截图", originalTitle: "合格证或订单截图", selectableType: true, selectedType: "", ai: true, ...vehicleMaterial([
+            { ...vehicleTemplates[0], attachments: [] },
+            { ...vehicleTemplates[1], attachments: [] }
+          ]) },
+          { title: "登记证", ai: true, fixedPages: registerPages, ...vehicleMaterial([
+            {
+              ...vehicleTemplates[0],
+              attachments: [
+                file("登记证1、2页", "fail", { reasons: ["附件存在明显反光，登记证关键字段不清晰。", "疑似翻拍件，请直接拍摄原件后重新上传。"] }),
+                file("登记证3、4页"),
+                file("登记证5、6页"),
+                file("登记证7、8页"),
+                file("登记证尾页")
+              ]
+            },
+            {
+              ...vehicleTemplates[1],
+              attachments: [
+                file("登记证1、2页"),
+                file("登记证3、4页"),
+                file("登记证5、6页")
+              ]
+            }
+          ]) },
+          { title: "承租人房产证明材料", ai: false, attachments: [] },
+          { title: "结案证明", ai: false, attachments: [file("附件1", "pass", { type: "JPG" })] },
+          { title: "银行流水", ai: true, attachments: [] },
+          { title: "发票", ai: true, attachments: [file("发票1", "fail", { type: "PDF", reasons: ["附件类型与当前材料不匹配，请上传发票原件图片或 PDF。", "附件画面存在水印遮挡，影响票面信息识别。"] })] }
+        ]
+      },
+      {
+        title: "担保个人-唐慧峰",
+        materials: [
+          { title: "保证担保合同", ai: false, attachments: [] },
+          { title: "合同面签照", ai: false, attachments: [file("面签照", "pass", { type: "JPG" })] }
+        ]
+      },
+      {
+        title: "其他材料",
+        materials: [
+          { title: "其他材料名称", ai: false, optional: true, attachments: [file("附件1", "pass", { type: "PNG" })] },
+          { title: "其他材料名称", ai: false, optional: true, attachments: [] }
+        ]
+      }
+    ];
+    function storageGet(key) {
+      try {
+        const state = JSON.parse(window.name || "{}");
+        if (state && state[key] !== undefined) return state[key];
+      } catch (error) {
+      }
+      try {
+        return localStorage.getItem(key);
+      } catch (error) {
+        return null;
+      }
+    }
+    function storageSet(key, value) {
+      try {
+        const state = JSON.parse(window.name || "{}");
+        state[key] = value;
+        window.name = JSON.stringify(state);
+      } catch (error) {
+      }
+      try {
+        localStorage.setItem(key, value);
+      } catch (error) {
+      }
+    }
+    const resetRequested = storageGet("materialDetectionReset") === "1";
+    function cloneGroups(groups) {
+      return JSON.parse(JSON.stringify(groups));
+    }
+    function resetAttachmentDetections(groups) {
+      groups.forEach((group) => {
+        (group.materials || []).forEach((material) => {
+          const stores = material.vehicle
+            ? (material.vehicles || []).map((vehicle) => vehicle.attachments || [])
+            : [material.attachments || []];
+          stores.forEach((attachments) => {
+            attachments.forEach((attachment) => {
+              attachment.status = "idle";
+              attachment.reasons = [];
+            });
+          });
+        });
+      });
+      return groups;
+    }
+    function loadGroups() {
+      const saved = storageGet("materialChecklistState");
+      if (!saved) return resetRequested ? resetAttachmentDetections(cloneGroups(defaultGroups)) : cloneGroups(defaultGroups);
+      try {
+        const parsed = JSON.parse(saved);
+        return resetRequested ? resetAttachmentDetections(parsed) : parsed;
+      } catch (error) {
+        return resetRequested ? resetAttachmentDetections(cloneGroups(defaultGroups)) : cloneGroups(defaultGroups);
+      }
+    }
+    let groups = loadGroups();
+    function saveGroups() {
+      storageSet("materialChecklistState", JSON.stringify(groups));
+    }
+    if (resetRequested) {
+      storageSet("materialGlobalStatus", "");
+      storageSet("materialGlobalResult", "");
+      storageSet("materialGlobalStartedAt", "");
+      storageSet("materialGlobalRunId", "");
+      storageSet("materialDetectionReset", "");
+      saveGroups();
+    }
+    const content = document.querySelector("#content");
+    const typeSheet = document.querySelector("#typeSheet");
+    const confirmSheet = document.querySelector("#confirmSheet");
+    let globalStatus = resetRequested ? "" : (new URLSearchParams(window.location.search).get("globalStatus") || storageGet("materialGlobalStatus") || "");
+    if (globalStatus === "checking" && !Number(storageGet("materialGlobalStartedAt") || 0)) {
+      globalStatus = "";
+      storageSet("materialGlobalStatus", "");
+    }
+    let isGlobalChecking = globalStatus === "checking";
+    function readGlobalResult() {
+      const saved = storageGet("materialGlobalResult");
+      if (!saved) return { status: "", opinions: [] };
+      try {
+        return JSON.parse(saved);
+      } catch (error) {
+        return { status: "", opinions: [] };
+      }
+    }
+    let globalResult = readGlobalResult();
+    function setGlobalResult(status) {
+      const result = status === "fail"
+        ? {
+            status,
+            opinions: [
+              { material: "登记证", reasons: ["登记证车架号与订单车辆车架号不一致。"] },
+              { material: "发票", reasons: ["发票客户姓名与订单客户姓名不一致。"] }
+            ]
+          }
+        : { status, opinions: [] };
+      storageSet("materialGlobalResult", JSON.stringify(result));
+      globalResult = result;
+    }
+    function completeGlobalCheckIfDue() {
+      if (globalStatus !== "checking") return false;
+      const startedAt = Number(storageGet("materialGlobalStartedAt") || 0);
+      if (!startedAt || Date.now() - startedAt < 20000) return false;
+      globalStatus = "fail";
+      isGlobalChecking = false;
+      storageSet("materialGlobalStatus", globalStatus);
+      setGlobalResult(globalStatus);
+      return true;
+    }
+    function scheduleGlobalCompletion() {
+      if (globalStatus !== "checking") return;
+      const startedAt = Number(storageGet("materialGlobalStartedAt") || 0);
+      const remain = Math.max(0, 20000 - (Date.now() - startedAt));
+      window.setTimeout(() => {
+        if (completeGlobalCheckIfDue()) render();
+      }, remain || 1);
+    }
+    let pendingTypeTarget = null;
+    let pendingSwitchType = "";
+
+    function reviewHtml(reasons = []) {
+      if (!reasons.length) return "";
+      return `<div class="review-inline"><strong>附件检测意见</strong>${reasons.map((item, index) => `<p>${index + 1}. ${item}</p>`).join("")}</div>`;
+    }
+
+    function globalReviewHtml(materialTitle) {
+      const opinion = (globalResult.opinions || []).find((item) => item.material === materialTitle);
+      if (!opinion) return "";
+      return `<div class="review-inline global-review"><strong>全局检测意见</strong>${opinion.reasons.map((item, index) => `<p>${index + 1}. ${item}</p>`).join("")}</div>`;
+    }
+
+    function attachmentStore(material, vehicleIndex) {
+      return vehicleIndex === undefined ? material.attachments : material.vehicles[vehicleIndex].attachments;
+    }
+
+    function materialAttachments(material) {
+      if (material.vehicle) return material.vehicles.flatMap((vehicle) => vehicle.attachments);
+      return material.attachments || [];
+    }
+
+    function materialAttachmentCount(material) {
+      return materialAttachments(material).length;
+    }
+
+    function materialHasFail(material) {
+      return materialAttachments(material).some((att) => att.status === "fail");
+    }
+
+    function groupHasGlobalToggle(group) {
+      return group.title.includes("承租个人") || group.title.includes("担保个人");
+    }
+
+    function groupAllCollapsed(group) {
+      return group.materials.every((material) => material.collapsed);
+    }
+
+    function isCertificateOrOrder(material) {
+      return material.selectableType === true;
+    }
+
+    function openTypeSheet(target) {
+      pendingTypeTarget = target;
+      typeSheet.classList.add("show");
+      typeSheet.setAttribute("aria-hidden", "false");
+    }
+
+    function closeTypeSheet() {
+      typeSheet.classList.remove("show");
+      typeSheet.setAttribute("aria-hidden", "true");
+    }
+
+    function closeConfirmSheet() {
+      confirmSheet.classList.remove("show");
+      confirmSheet.setAttribute("aria-hidden", "true");
+      pendingSwitchType = "";
+    }
+
+    function applyMaterialType(target, type, clearAttachments) {
+      const material = groups[target.groupIndex].materials[target.materialIndex];
+      material.selectedType = type;
+      material.title = type;
+      if (clearAttachments) {
+        material.vehicles.forEach((vehicle) => {
+          vehicle.attachments = [];
+        });
+      }
+      saveGroups();
+      render();
+    }
+
+    function fileMeta(att) {
+      return `${att.type || "图片"} · ${att.time || "刚刚上传"}`;
+    }
+
+    function thumbClass(att, materialTitle = "") {
+      const text = `${materialTitle} ${att.name || ""} ${att.type || ""}`;
+      if (text.includes("登记证")) return "thumb-register";
+      if (text.includes("发票")) return "thumb-invoice";
+      if (text.includes("合同")) return "thumb-contract";
+      if (text.includes("面签") || text.includes("照片") || text.includes("JPG") || text.includes("PNG")) return "thumb-photo";
+      if (text.includes("首付款") || text.includes("凭证") || text.includes("证明") || text.includes("结案")) return "thumb-receipt";
+      return "thumb-receipt";
+    }
+
+    function attachmentHtml(att, groupIndex, materialIndex, attachmentIndex, vehicleIndex, materialTitle = "") {
+      const checking = att.status === "checking" ? '<span class="checking-label">附件检测中</span>' : "";
+      const vehicleAttr = vehicleIndex === undefined ? "" : ` data-vehicle="${vehicleIndex}"`;
+      const globalReview = attachmentIndex === 0 ? globalReviewHtml(materialTitle) : "";
+      const attachmentReasons = att.reasons && att.reasons.length ? att.reasons : [];
+      return `
+        <div class="attachment-wrap">
+          <div class="attachment ${att.status}${attachmentReasons.length || globalReview ? " has-review" : ""}">
+            <span class="file-thumb uploaded ${thumbClass(att, materialTitle)}" aria-hidden="true"></span>
+            <span class="file-main">
+              <span class="attachment-name">${att.name}</span>
+              <span class="attachment-meta">${fileMeta(att)}</span>
+              ${attachmentReasons.length ? reviewHtml(attachmentReasons) : ""}
+              ${globalReview}
+            </span>
+            ${checking}
+            <button class="delete-attachment" type="button" data-group="${groupIndex}" data-material="${materialIndex}"${vehicleAttr} data-attachment="${attachmentIndex}" aria-label="删除附件"></button>
+          </div>
+        </div>
+      `;
+    }
+
+    function fixedPageHtml(pageName, att, groupIndex, materialIndex, vehicleIndex) {
+      if (att) {
+        const attachmentIndex = attachmentStore(groups[groupIndex].materials[materialIndex], vehicleIndex).indexOf(att);
+        return attachmentHtml(att, groupIndex, materialIndex, attachmentIndex, vehicleIndex, groups[groupIndex].materials[materialIndex].title);
+      }
+      return `
+        <div class="attachment-wrap">
+          <div class="attachment add registration-slot">
+            <span class="file-thumb sample-license" aria-hidden="true"><span class="sample-label">示例</span><span class="camera-lens"></span></span>
+            <span class="file-main">
+              <span class="attachment-name">${pageName}</span>
+              <span class="attachment-meta">登记证示例图，请上传对应页</span>
+            </span>
+            <button class="upload-chip" type="button" data-group="${groupIndex}" data-material="${materialIndex}" data-vehicle="${vehicleIndex}" data-page="${pageName}" aria-label="上传${pageName}">上传</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function attachmentListHtml(material, groupIndex, materialIndex, vehicleIndex) {
+      if (material.fixedPages) {
+        const attachments = attachmentStore(material, vehicleIndex);
+        return `<div class="attachment-list">${material.fixedPages.map((pageName) => {
+          const att = attachments.find((item) => item.name === pageName);
+          return fixedPageHtml(pageName, att, groupIndex, materialIndex, vehicleIndex);
+        }).join("")}</div>`;
+      }
+      const attachments = attachmentStore(material, vehicleIndex)
+        .map((att, attachmentIndex) => attachmentHtml(att, groupIndex, materialIndex, attachmentIndex, vehicleIndex, material.title))
+        .join("");
+      const vehicleAttr = vehicleIndex === undefined ? "" : ` data-vehicle="${vehicleIndex}"`;
+      const add = `
+        <div class="attachment-wrap">
+          <button class="attachment add" type="button" data-group="${groupIndex}" data-material="${materialIndex}"${vehicleAttr} aria-label="上传附件">
+            ＋<span class="upload-text">上传附件</span>
+          </button>
+        </div>
+      `;
+      return `<div class="attachment-list">${attachments}${add}</div>`;
+    }
+
+    function materialHtml(material, groupIndex, materialIndex) {
+      const count = materialAttachmentCount(material);
+      const hasFail = materialHasFail(material);
+      const body = material.vehicle
+        ? material.vehicles.map((vehicle, vehicleIndex) => `
+          <div class="vin-block">
+            <div class="vin">${vehicle.vin}</div>
+            ${attachmentListHtml(material, groupIndex, materialIndex, vehicleIndex)}
+          </div>
+        `).join("")
+        : attachmentListHtml(material, groupIndex, materialIndex);
+      return `
+        <div class="material-card${material.collapsed ? " collapsed" : ""}">
+          <div class="material-head" data-group="${groupIndex}" data-material="${materialIndex}">
+            <div class="material-title">${material.title}</div>
+            <span class="material-count">${count}份</span>
+            ${material.collapsed && hasFail ? '<span class="fail-badge">AI不通过</span>' : ""}
+            ${material.ai ? '<span class="ai-mark">AI识别</span>' : ""}
+            ${isCertificateOrOrder(material) && material.selectedType ? `<button class="switch-type" type="button" data-group="${groupIndex}" data-material="${materialIndex}">切换</button>` : ""}
+            ${material.optional ? `<button class="delete-material" type="button" data-group="${groupIndex}" data-material="${materialIndex}">删除</button>` : ""}
+            <span class="collapse-arrow" aria-hidden="true"></span>
+          </div>
+          <div class="material-body">${body}</div>
+        </div>
+      `;
+    }
+
+    function render() {
+      completeGlobalCheckIfDue();
+      document.querySelector(".phone").classList.toggle("readonly", isGlobalChecking);
+      const globalTipText = globalStatus === "checking"
+        ? "AI全局检测中,请耐心等待，预计30s内审核完成"
+        : globalStatus === "fail"
+          ? "AI全局检测完成，存在待关注项"
+          : globalStatus === "pass"
+            ? "AI全局检测完成，未发现问题"
+            : "";
+      content.innerHTML = groups.map((group, groupIndex) => `
+        ${groupIndex === 0 && globalTipText ? `<div class="global-ai-tip ${globalStatus}">${globalTipText}</div>` : ""}
+        <section class="section">
+          <div class="section-head">
+            <h2>${group.title}</h2>
+            ${groupHasGlobalToggle(group) ? `<button class="toggle-all" type="button" data-group="${groupIndex}">${groupAllCollapsed(group) ? "全部展开" : "全部折叠"}</button>` : ""}
+          </div>
+          ${group.materials.map((material, materialIndex) => materialHtml(material, groupIndex, materialIndex)).join("")}
+          <button class="add-box" type="button">＋ 新增材料类型</button>
+        </section>
+      `).join("");
+    }
+
+    content.addEventListener("click", (event) => {
+      if (isGlobalChecking && event.target.closest(".attachment.add, .upload-chip, .delete-attachment, .switch-type, .delete-material, .add-box")) {
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+      const toggleAll = event.target.closest(".toggle-all");
+      if (toggleAll) {
+        const groupIndex = Number(toggleAll.dataset.group);
+        const collapse = !groupAllCollapsed(groups[groupIndex]);
+        groups[groupIndex].materials.forEach((material) => {
+          material.collapsed = collapse;
+        });
+        saveGroups();
+        render();
+        return;
+      }
+      const materialHead = event.target.closest(".material-head");
+      if (materialHead && !event.target.closest("button")) {
+        const groupIndex = Number(materialHead.dataset.group);
+        const materialIndex = Number(materialHead.dataset.material);
+        const material = groups[groupIndex].materials[materialIndex];
+        material.collapsed = !material.collapsed;
+        saveGroups();
+        render();
+        return;
+      }
+      const del = event.target.closest(".delete-attachment");
+      if (del) {
+        event.stopPropagation();
+        const groupIndex = Number(del.dataset.group);
+        const materialIndex = Number(del.dataset.material);
+        const attachmentIndex = Number(del.dataset.attachment);
+        const material = groups[groupIndex].materials[materialIndex];
+        const attachments = attachmentStore(material, del.dataset.vehicle === undefined ? undefined : Number(del.dataset.vehicle));
+        attachments.splice(attachmentIndex, 1);
+        saveGroups();
+        render();
+        return;
+      }
+      const deleteMaterial = event.target.closest(".delete-material");
+      if (deleteMaterial) {
+        const groupIndex = Number(deleteMaterial.dataset.group);
+        const materialIndex = Number(deleteMaterial.dataset.material);
+        groups[groupIndex].materials.splice(materialIndex, 1);
+        saveGroups();
+        render();
+        return;
+      }
+      const switchType = event.target.closest(".switch-type");
+      if (switchType) {
+        openTypeSheet({
+          mode: "switch",
+          groupIndex: Number(switchType.dataset.group),
+          materialIndex: Number(switchType.dataset.material)
+        });
+        return;
+      }
+      const add = event.target.closest(".attachment.add, .upload-chip");
+      if (!add) return;
+      const groupIndex = Number(add.dataset.group);
+      const materialIndex = Number(add.dataset.material);
+      const vehicleIndex = add.dataset.vehicle === undefined ? undefined : Number(add.dataset.vehicle);
+      const material = groups[groupIndex].materials[materialIndex];
+      const attachments = attachmentStore(material, vehicleIndex);
+      if (isCertificateOrOrder(material) && !material.selectedType) {
+        openTypeSheet({ mode: "select", groupIndex, materialIndex, vehicleIndex });
+        return;
+      }
+      const index = attachments.length + 1;
+      const name = add.dataset.page || (isCertificateOrOrder(material) ? `${material.selectedType}${index}` : `附件${index}`);
+      if (add.dataset.page && attachments.some((item) => item.name === add.dataset.page)) return;
+      const attachment = file(name, material.ai ? "checking" : "pass", { type: name.includes("流水") || name.includes("合同") ? "PDF" : "JPG", time: "刚刚上传" });
+      attachments.push(attachment);
+      if (["pass", "fail"].includes(storageGet("materialGlobalStatus"))) {
+        storageSet("materialGlobalDirty", "1");
+      }
+      saveGroups();
+      render();
+      if (material.ai) {
+        window.setTimeout(() => {
+          attachment.status = index % 3 === 0 ? "fail" : "pass";
+          if (attachment.status === "fail") {
+            attachment.reasons = ["附件清晰度不足，关键字段无法识别。", "疑似存在反光或翻拍痕迹，请重新拍摄原件上传。"];
+          }
+          attachment.time = "2026-05-27 09:49";
+          saveGroups();
+          render();
+        }, 8000);
+      }
+    });
+
+    typeSheet.addEventListener("click", (event) => {
+      if (event.target === typeSheet || event.target.closest(".sheet-cancel")) {
+        closeTypeSheet();
+        return;
+      }
+      const option = event.target.closest(".sheet-option");
+      if (!option || !pendingTypeTarget) return;
+      const nextType = option.dataset.type;
+      const material = groups[pendingTypeTarget.groupIndex].materials[pendingTypeTarget.materialIndex];
+      const hasAttachments = material.vehicles.some((vehicle) => vehicle.attachments.length);
+      closeTypeSheet();
+      if (pendingTypeTarget.mode === "switch" && material.selectedType && material.selectedType !== nextType && hasAttachments) {
+        pendingSwitchType = nextType;
+        confirmSheet.classList.add("show");
+        confirmSheet.setAttribute("aria-hidden", "false");
+        return;
+      }
+      applyMaterialType(pendingTypeTarget, nextType, false);
+    });
+
+    confirmSheet.addEventListener("click", (event) => {
+      if (event.target === confirmSheet || event.target.closest(".confirm-cancel")) {
+        closeConfirmSheet();
+        return;
+      }
+      if (!event.target.closest(".confirm-ok") || !pendingTypeTarget) return;
+      applyMaterialType(pendingTypeTarget, pendingSwitchType, true);
+      closeConfirmSheet();
+    });
+
+    document.querySelector("#backOrder").addEventListener("click", () => {
+      if (window.history.length > 1) {
+        window.history.back();
+        return;
+      }
+      window.location.href = "order-detail.html";
+    });
+    scheduleGlobalCompletion();
+    render();
+  </script>
+</body>
+</html>
