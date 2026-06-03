@@ -1,0 +1,52 @@
+<view class="page safe-bottom">
+  <view class="top-band">
+    <view>
+      <view class="eyebrow">GROUP ORDER</view>
+      <view class="headline">发起一个局，群里直接报名</view>
+      <view class="subline">人数、年龄、性别、身高体重和自定义规则都能提前写清楚。</view>
+    </view>
+    <button class="start-btn" bindtap="goCreate">开团</button>
+  </view>
+
+  <view class="section-head">
+    <text class="section-title">正在开团</text>
+    <text class="section-meta">{{groups.length}} 个</text>
+  </view>
+
+  <block wx:if="{{groups.length}}">
+    <view
+      wx:for="{{groups}}"
+      wx:key="id"
+      class="group-card card"
+      bindtap="goDetail"
+      data-id="{{item.id}}"
+    >
+      <view class="group-main">
+        <view class="group-title">{{item.title}}</view>
+        <view class="group-desc">团长 {{item.owner}} · {{item.members.length}}/{{item.limit}} 人</view>
+      </view>
+      <view class="progress">
+        <view class="progress-bar" style="width: {{item.percent}}%;"></view>
+      </view>
+      <view class="member-row">
+        <view class="avatar-stack">
+          <view
+            wx:for="{{item.previewMembers}}"
+            wx:for-item="member"
+            wx:key="id"
+            class="avatar"
+          >
+            {{member.initial}}
+          </view>
+        </view>
+        <view class="join-state {{item.full ? 'danger' : ''}}">{{item.full ? '已满员' : '可加入'}}</view>
+      </view>
+    </view>
+  </block>
+
+  <view wx:else class="empty card">
+    <view class="empty-title">还没有开团</view>
+    <view class="empty-desc">点击开团后，把分享卡片发到微信群即可收集报名。</view>
+    <button class="primary-btn" bindtap="goCreate">立即开团</button>
+  </view>
+</view>

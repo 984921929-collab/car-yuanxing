@@ -1,0 +1,16 @@
+{
+  "pages": [
+    "pages/home/home",
+    "pages/create/create",
+    "pages/detail/detail"
+  ],
+  "window": {
+    "navigationBarTitleText": "搭子开团",
+    "navigationBarBackgroundColor": "#f7f8fb",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f7f8fb",
+    "backgroundTextStyle": "dark"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

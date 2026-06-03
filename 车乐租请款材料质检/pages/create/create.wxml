@@ -1,0 +1,88 @@
+<view class="page create-page safe-bottom">
+  <view class="summary card">
+    <view class="summary-kicker">CREATE GROUP</view>
+    <view class="summary-title">把规则提前说清楚</view>
+    <view class="summary-desc">创建后可直接转发到微信群，群成员点击卡片查看并报名。</view>
+  </view>
+
+  <view class="form card">
+    <view class="field">
+      <view class="label">标题</view>
+      <input value="{{form.title}}" data-key="title" bindinput="onInput" placeholder="例如：周六飞盘 12 人局" />
+    </view>
+
+    <view class="two-col">
+      <view class="field">
+        <view class="label">人数上限</view>
+        <input type="number" value="{{form.limit}}" data-key="limit" bindinput="onInput" placeholder="8" />
+      </view>
+      <view class="field">
+        <view class="label">团长昵称</view>
+        <input type="nickname" value="{{form.owner}}" data-key="owner" bindinput="onInput" placeholder="填写昵称" />
+      </view>
+    </view>
+
+    <view class="two-col">
+      <view class="field">
+        <view class="label">最低年龄</view>
+        <input type="number" value="{{form.ageMin}}" data-key="ageMin" bindinput="onInput" placeholder="不限" />
+      </view>
+      <view class="field">
+        <view class="label">最高年龄</view>
+        <input type="number" value="{{form.ageMax}}" data-key="ageMax" bindinput="onInput" placeholder="不限" />
+      </view>
+    </view>
+
+    <view class="field">
+      <view class="label">性别限制</view>
+      <view class="segmented">
+        <view
+          wx:for="{{genderOptions}}"
+          wx:key="*this"
+          class="segment {{form.gender === item ? 'active' : ''}}"
+          bindtap="selectGender"
+          data-value="{{item}}"
+        >
+          {{item}}
+        </view>
+      </view>
+    </view>
+
+    <view class="two-col">
+      <view class="field">
+        <view class="label">最低身高 cm</view>
+        <input type="number" value="{{form.heightMin}}" data-key="heightMin" bindinput="onInput" placeholder="不限" />
+      </view>
+      <view class="field">
+        <view class="label">最高身高 cm</view>
+        <input type="number" value="{{form.heightMax}}" data-key="heightMax" bindinput="onInput" placeholder="不限" />
+      </view>
+    </view>
+
+    <view class="two-col">
+      <view class="field">
+        <view class="label">最低体重 kg</view>
+        <input type="number" value="{{form.weightMin}}" data-key="weightMin" bindinput="onInput" placeholder="不限" />
+      </view>
+      <view class="field">
+        <view class="label">最高体重 kg</view>
+        <input type="number" value="{{form.weightMax}}" data-key="weightMax" bindinput="onInput" placeholder="不限" />
+      </view>
+    </view>
+
+    <view class="field">
+      <view class="label">自定义限制</view>
+      <textarea
+        value="{{form.customRules}}"
+        data-key="customRules"
+        bindinput="onInput"
+        placeholder="每行一条，例如：需会基础规则&#10;需提前 10 分钟到场"
+        maxlength="240"
+      />
+    </view>
+  </view>
+
+  <view class="bottom-action">
+    <button class="primary-btn" bindtap="submit">确定开团</button>
+  </view>
+</view>
